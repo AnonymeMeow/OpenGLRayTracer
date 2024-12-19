@@ -39,15 +39,9 @@ void triangle(vec3 v1, vec3 v2, vec3 v3, vec2 t1, vec2 t2, vec2 t3)
 void face(vec3 origin, vec3 edge_x, vec3 edge_y, vec4 uv)
 {
     triangle(origin, origin + edge_x, origin + edge_x + edge_y,
-        uv.xy,
-        uv.xy + vec2(uv.z, 0),
-        uv.xy + uv.zw
-    );
+        uv.xy, uv.xy + vec2(uv.z, 0), uv.xy + uv.zw);
     triangle(origin + edge_x + edge_y, origin + edge_y, origin,
-        uv.xy + uv.zw,
-        uv.xy + vec2(0, uv.w),
-        uv.xy
-    );
+        uv.xy + uv.zw, uv.xy + vec2(0, uv.w), uv.xy);
 }
 
 void main()

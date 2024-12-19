@@ -24,6 +24,15 @@ out UV
 
 uniform int frame;
 
+mat3 diag(vec3 v)
+{
+    return mat3(
+        v.x, 0, 0,
+        0, v.y, 0,
+        0, 0, v.z
+    );
+}
+
 void main()
 {
     float angle = float(frame) / 1000.f;
@@ -37,18 +46,15 @@ void main()
         0, cos(0.6), -sin(0.6),
         0, sin(0.6), cos(0.6)
     );
-    mat3 rot0 = mat3(
-        1 - rotation.y * rotation.y - rotation.z * rotation.z,  rotation.z, -rotation.y,
-        -rotation.z, 1 - rotation.x * rotation.x - rotation.z * rotation.z,  rotation.x,
-         rotation.y, -rotation.x, 1 - rotation.x * rotation.x - rotation.y * rotation.y
-    );
-    mat3 transform = mat3(
-        -1, 0, 0,
-        0, 1, 0,
-        0, 0, 1
-    );
+    vec4 q = vec4(rotation, sqrt(1 - dot(rotation, rotation)));
+    mat3 rot0 = 2 * mat3(
+        1 - q.y * q.y - q.z * q.z, q.x * q.y + q.z * q.w, q.x * q.z - q.y * q.w,
+        q.x * q.y - q.z * q.w, 1 - q.x * q.x - q.z * q.z, q.y * q.z + q.x * q.w,
+        q.x * q.z + q.y * q.w, q.y * q.z - q.x * q.w, 1 - q.x * q.x - q.y * q.y
+    ) - diag(vec3(1));
+    mat3 transform = diag(vec3(-1, 1, 1));
     origin_vs   = rot2 * rot1 * transform * origin;
-    edges_vs    = rot2 * rot1 * transform * rot0 * mat3(size.x, 0, 0, 0, size.y, 0, 0, 0, size.z);
+    edges_vs    = rot2 * rot1 * transform * rot0 * diag(size);
     uv_vs.east  = uv_east;
     uv_vs.south = uv_south;
     uv_vs.west  = uv_west;
