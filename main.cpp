@@ -4,62 +4,36 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
 
 const int WindowWidth = 1000;
 const int WindowHeight = 1000;
 
 struct VertexIn
 {
-    float vertexCoord[3];
-    float textureCoord[2];
+    float origin[3];
+    float size[3];
+    float rotation[3];
+    float uv_east[4];
+    float uv_south[4];
+    float uv_west[4];
+    float uv_north[4];
+    float uv_up[4];
+    float uv_down[4];
 };
 
-std::vector<VertexIn> vertices = {
-    {-1.f,  1.f, -1.f, 0.f, 0.f},
-    { 1.f,  1.f, -1.f, 1.f, 0.f},
-    { 1.f, -1.f, -1.f, 1.f, 1.f},
-    {-1.f, -1.f, -1.f, 0.f, 1.f},
-
-    { 1.f,  1.f, -1.f, 0.f, 0.f},
-    { 1.f,  1.f,  1.f, 1.f, 0.f},
-    { 1.f, -1.f,  1.f, 1.f, 1.f},
-    { 1.f, -1.f, -1.f, 0.f, 1.f},
-    
-    { 1.f,  1.f,  1.f, 0.f, 0.f},
-    {-1.f,  1.f,  1.f, 1.f, 0.f},
-    {-1.f, -1.f,  1.f, 1.f, 1.f},
-    { 1.f, -1.f,  1.f, 0.f, 1.f},
-    
-    {-1.f,  1.f,  1.f, 0.f, 0.f},
-    {-1.f,  1.f, -1.f, 1.f, 0.f},
-    {-1.f, -1.f, -1.f, 1.f, 1.f},
-    {-1.f, -1.f,  1.f, 0.f, 1.f},
-
-    {-1.f,  1.f,  1.f, 0.f, 0.f},
-    { 1.f,  1.f,  1.f, 1.f, 0.f},
-    { 1.f,  1.f, -1.f, 1.f, 1.f},
-    {-1.f,  1.f, -1.f, 0.f, 1.f},
-
-    {-1.f, -1.f, -1.f, 0.f, 0.f},
-    { 1.f, -1.f, -1.f, 1.f, 0.f},
-    { 1.f, -1.f,  1.f, 1.f, 1.f},
-    {-1.f, -1.f,  1.f, 0.f, 1.f},
-};
-
-std::vector<unsigned int> indices = {
-    0, 1, 2,
-    0, 2, 3,
-    4, 5, 6,
-    4, 6, 7,
-    8, 9, 10,
-    8, 10, 11,
-    12, 13, 14,
-    12, 14, 15,
-    16, 17, 18,
-    16, 18, 19,
-    20, 21, 22,
-    20, 22, 23,
-};
+std::vector<VertexIn> vertices = {{
+    -1.f, -1.f, -1.f,
+    2.f, 2.f, 2.f,
+    0.f, 0.f, 0.f,
+    0.f, 0.f, 1.f, 1.f,
+    0.f, 0.f, 1.f, 1.f,
+    0.f, 0.f, 1.f, 1.f,
+    0.f, 0.f, 1.f, 1.f,
+    0.f, 0.f, 1.f, 1.f,
+    0.f, 0.f, 1.f, 1.f,
+}};
 
 int main()
 {
@@ -90,11 +64,23 @@ int main()
 
     glViewport(0, 0, WindowWidth, WindowHeight);
 
-    Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_TRIANGLES);
+    Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
 
     prog.input.setVertice(vertices);
-    prog.input.setIndice(indices);
-    prog.input.loadMemoryModel(&VertexIn::vertexCoord, &VertexIn::textureCoord);
+    prog.input.loadMemoryModel(
+        &VertexIn::origin,
+        &VertexIn::size,
+        &VertexIn::rotation,
+        &VertexIn::uv_east,
+        &VertexIn::uv_south,
+        &VertexIn::uv_west,
+        &VertexIn::uv_north,
+        &VertexIn::uv_up,
+        &VertexIn::uv_down
+    );
+
+    // stbi_set_flip_vertically_on_load(true);
+    stbi_flip_vertically_on_write(true);
 
     int texWidth, texHeight, nChannels;
     unsigned char* tex = stbi_load("../.cache/cirno_fumo.png", &texWidth, &texHeight, &nChannels, 0);
@@ -104,13 +90,13 @@ int main()
         exit(-1);
     }
 
-    TextureArray texture{};
-    texture.allocate(texWidth, texHeight, 1, GL_RGBA8);
-    texture.buffer(0, 0, 0, texWidth, texHeight, GL_RGBA, tex);
+    Texture texture{};
+    texture.allocate(texWidth, texWidth, GL_RGBA8);
+    texture.buffer(0, 0, texWidth, texWidth, GL_RGBA, tex);
 
     stbi_image_free(tex);
 
-    prog.set<const TextureBase&>("altas", texture);
+    prog.set<const Texture&>("altas", texture);
 
     bool running = true;
     int frame = 0;
@@ -124,6 +110,13 @@ int main()
                 if (event.key.keysym.sym == SDLK_ESCAPE)
                 {
                     running = false;
+                }
+                else if (event.key.keysym.sym == SDLK_F2)
+                {
+                    unsigned char* img = new unsigned char[WindowWidth * WindowHeight * 3];
+                    glReadPixels(0, 0, WindowWidth, WindowHeight, GL_RGB, GL_UNSIGNED_BYTE, img);
+                    stbi_write_png("screenshot.png", WindowWidth, WindowHeight, 3, img, 0);
+                    delete[] img;
                 }
             }
             else if (event.type == SDL_QUIT)

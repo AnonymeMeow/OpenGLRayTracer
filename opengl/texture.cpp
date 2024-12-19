@@ -1,30 +1,20 @@
 #include "texture.hpp"
 #include "shader.hpp"
 
-TextureBase::TextureBase(GLenum set_type):
-    type(set_type)
+Texture::Texture()
 {
     glGenTextures(1, &id);
 }
 
-void TextureBase::bind() const
+void Texture::bind() const
 {
-    glBindTexture(type, id);
+    glBindTexture(GL_TEXTURE_2D, id);
 }
 
-void TextureBase::unbind() const
+void Texture::unbind() const
 {
-    glBindTexture(type, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
-
-TextureBase::~TextureBase()
-{
-    glDeleteTextures(1, &id);
-}
-
-Texture::Texture():
-    TextureBase(GL_TEXTURE_2D)
-{}
 
 void Texture::allocate(GLsizei width, GLsizei height, GLenum format) const
 {
@@ -33,19 +23,13 @@ void Texture::allocate(GLsizei width, GLsizei height, GLenum format) const
     unbind();
 }
 
-TextureArray::TextureArray():
-    TextureBase(GL_TEXTURE_2D_ARRAY)
-{}
-
-void TextureArray::allocate(GLsizei width, GLsizei height, GLsizei depth, GLenum format) const
+Texture::~Texture()
 {
-    bind();
-    glTextureStorage3D(id, 1, format, width, height, depth);
-    unbind();
+    glDeleteTextures(1, &id);
 }
 
 template <>
-void Program::set(const GLchar* name, const TextureBase& texture)
+void Program::set(const GLchar* name, const Texture& texture)
 {
     if (boundTextures.contains(name))
     {

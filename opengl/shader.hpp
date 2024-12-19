@@ -17,7 +17,7 @@ public:
 class Program
 {
     const GLuint id;
-    std::map<const std::string, std::pair<const TextureBase*, GLuint>> boundTextures{};
+    std::map<const std::string, std::pair<const Texture*, GLuint>> boundTextures{};
     void link() const;
 public:
     VertexInput input;
