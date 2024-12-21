@@ -66,7 +66,7 @@ int main()
 
     Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
 
-    prog.input.setVertice(vertices);
+    prog.input.setVertices(vertices);
     prog.input.loadMemoryModel(
         &VertexIn::origin,
         &VertexIn::size,

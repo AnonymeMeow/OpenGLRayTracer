@@ -22,7 +22,7 @@ class VertexInput
     };
 
     GLuint VAO, VBO, EBO;
-    size_t indiceCount = 0, verticeCount = 0;
+    size_t indexCount = 0, vertexCount = 0;
     GLenum indexType = 0;
     const GLenum drawMode;
     void bindVBO() const;
@@ -32,53 +32,51 @@ class VertexInput
 public:
     VertexInput(GLenum);
     template <typename T>
-    void setVertice(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW)
+    void setVertices(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW)
     {
-        verticeCount = data.size();
+        vertexCount = data.size();
 
         bind();
         bindVBO();
-        glBufferData(GL_ARRAY_BUFFER, verticeCount * sizeof(T), data.data(), usage);
+        glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(T), data.data(), usage);
         unbind();
         unbindVBO();
     }
     template <typename T>
-    void setIndice(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW)
+    void setIndices(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW)
     {
-        indiceCount = data.size();
+        indexCount = data.size();
         indexType = GetGLTypeEnum<T>::value;
 
         bind();
         bindEBO();
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indiceCount * sizeof(T), data.data(), usage);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(T), data.data(), usage);
         unbind();
         unbindEBO();
     }
-    template <int Index = 0, typename T, typename Current, typename... Remaining>
-    void loadMemoryModel(Current (T::*current), Remaining (T::*...remaining)) const
+    template <typename T, typename... Members>
+    void loadMemoryModel(Members (T::* const... members)) const
     {
-        if constexpr(Index == 0)
-        {
-            bind();
-            bindVBO();
-            bindEBO();
-        }
-        size_t offset = (size_t)&(((T*)NULL)->*current);
-        size_t stride = (size_t)((T*)NULL + 1);
-        GLenum type = GetGLTypeEnum<typename GetArraySize<Current>::Type>::value;
-        size_t size = GetArraySize<Current>::Size;
-        glVertexAttribPointer(Index, size, type, GL_FALSE, stride, (const void*)offset);
-        glEnableVertexAttribArray(Index);
-        if constexpr(sizeof...(Remaining))
-        {
-            loadMemoryModel<Index + 1>(remaining...);
-        }
-        if constexpr(Index == 0)
-        {
-            unbind();
-            unbindVBO();
-            unbindEBO();
-        }
+        bind();
+        bindVBO();
+        bindEBO();
+        GLuint index = 0;
+        (
+            (
+                glVertexAttribPointer(
+                    index,
+                    GetArraySize<Members>::Size,
+                    GetGLTypeEnum<typename GetArraySize<Members>::Type>::value,
+                    GL_FALSE,
+                    sizeof(T),
+                    static_cast<const void*>(&(((T*)nullptr)->*members))
+                ),
+                glEnableVertexAttribArray(index++)
+            ), ...
+        );
+        unbind();
+        unbindVBO();
+        unbindEBO();
     }
     void draw() const;
     void bind() const;

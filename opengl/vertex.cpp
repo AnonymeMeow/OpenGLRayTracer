@@ -31,15 +31,15 @@ void VertexInput::unbindEBO() const
 void VertexInput::draw() const
 {
     bind();
-    if (verticeCount)
+    if (vertexCount)
     {
-        if (indiceCount)
+        if (indexCount)
         {
-            glDrawElements(drawMode, indiceCount, indexType, 0);
+            glDrawElements(drawMode, indexCount, indexType, 0);
         }
         else
         {
-            glDrawArrays(drawMode, 0, verticeCount);
+            glDrawArrays(drawMode, 0, vertexCount);
         }
     }
     else
