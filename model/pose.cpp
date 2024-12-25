@@ -1,0 +1,63 @@
+#include "pose.hpp"
+
+#include <cmath>
+#include <numbers>
+
+Quaternion::Quaternion(double w, double x, double y, double z):
+    w(w), x(x), y(y), z(z)
+{}
+
+Quaternion Quaternion::operator~() const
+{
+    return Quaternion(w, -x, -y, -z);
+}
+
+Quaternion Quaternion::operator-() const
+{
+    return Quaternion(-w, -x, -y, -z);
+}
+
+Quaternion Quaternion::operator+(const Quaternion& q) const
+{
+    return Quaternion(w + q.w, x + q.x, y + q.y, z + q.z);
+}
+
+Quaternion Quaternion::operator-(const Quaternion& q) const
+{
+    return Quaternion(w - q.w, x - q.x, y - q.y, z - q.z);
+}
+
+Quaternion Quaternion::operator*(const Quaternion& q) const
+{
+    return Quaternion(
+        w * q.w - x * q.x - y * q.y - z * q.z,
+        w * q.x + x * q.w + y * q.z - z * q.y,
+        w * q.y - x * q.z + y * q.w + z * q.x,
+        w * q.z + x * q.y - y * q.x + z * q.w
+    );
+}
+
+PoseTransform::PoseTransform(Quaternion rotation, Quaternion translation):
+    rotation(rotation), translation(translation)
+{}
+
+PoseTransform::PoseTransform(double euler[3], double pivot[3]):
+    rotation(0, 0, 0, 0),
+    translation(0, pivot[0], pivot[1], pivot[2])
+{
+    Quaternion rotationX = Quaternion(cos(euler[0] * std::numbers::pi / 360), sin(euler[0] * std::numbers::pi / 360), 0, 0);
+    Quaternion rotationY = Quaternion(cos(euler[1] * std::numbers::pi / 360), 0, sin(euler[1] * std::numbers::pi / 360), 0);
+    Quaternion rotationZ = Quaternion(cos(euler[2] * std::numbers::pi / 360), 0, 0, sin(euler[2] * std::numbers::pi / 360));
+    rotation = rotationZ * rotationY * rotationX;
+    translation = translation - rotation * translation * ~rotation;
+}
+
+PoseTransform PoseTransform::operator*(const PoseTransform& t) const
+{
+    return PoseTransform(rotation * t.rotation, *this * t.translation);
+}
+
+Quaternion PoseTransform::operator*(const Quaternion& q) const
+{
+    return rotation * q * ~rotation + translation;
+}

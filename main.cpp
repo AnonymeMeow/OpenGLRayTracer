@@ -1,3 +1,6 @@
+#include "model/cube.hpp"
+#include "model/model.hpp"
+#include "model/pose.hpp"
 #include "opengl/shader.hpp"
 
 #include <SDL2/SDL.h>
@@ -10,30 +13,35 @@
 const int WindowWidth = 1000;
 const int WindowHeight = 1000;
 
-struct VertexIn
+void push_cubes(std::vector<Cube<>>& cubes, Model::Bone* bone, const PoseTransform& pose, int texWidth, int texHeight)
 {
-    float origin[3];
-    float size[3];
-    float rotation[3];
-    float uv_east[4];
-    float uv_south[4];
-    float uv_west[4];
-    float uv_north[4];
-    float uv_up[4];
-    float uv_down[4];
-};
-
-std::vector<VertexIn> vertices = {{
-    -1.f, -1.f, -1.f,
-    2.f, 2.f, 2.f,
-    0.f, 0.f, 0.f,
-    0.f, 0.f, 1.f, 1.f,
-    0.f, 0.f, 1.f, 1.f,
-    0.f, 0.f, 1.f, 1.f,
-    0.f, 0.f, 1.f, 1.f,
-    0.f, 0.f, 1.f, 1.f,
-    0.f, 0.f, 1.f, 1.f,
-}};
+    PoseTransform poseBone = pose * PoseTransform(bone->rotation, bone->pivot);
+    for (auto cube: bone->cubes)
+    {
+        PoseTransform poseCube = poseBone * PoseTransform(cube->rotation, cube->pivot);
+        Quaternion origin(0, cube->origin[0], cube->origin[1], cube->origin[2]);
+        origin = poseCube * origin;
+        if (poseCube.rotation.w < 0)
+        {
+            poseCube.rotation = - poseCube.rotation;
+        }
+        cubes.push_back(Cube<>{
+            (float)(origin.x), (float)(origin.y), (float)(origin.z),
+            (float)(cube->size[0]), (float)(cube->size[1]), (float)(cube->size[2]),
+            (float)(poseCube.rotation.x), (float)(poseCube.rotation.y), (float)(poseCube.rotation.z),
+            (float)(cube->uv.east[0] / texWidth), (float)(cube->uv.east[1] / texHeight), (float)(cube->uv.east[2] / texWidth), (float)(cube->uv.east[3] / texHeight),
+            (float)(cube->uv.south[0] / texWidth), (float)(cube->uv.south[1] / texHeight), (float)(cube->uv.south[2] / texWidth), (float)(cube->uv.south[3] / texHeight),
+            (float)(cube->uv.west[0] / texWidth), (float)(cube->uv.west[1] / texHeight), (float)(cube->uv.west[2] / texWidth), (float)(cube->uv.west[3] / texHeight),
+            (float)(cube->uv.north[0] / texWidth), (float)(cube->uv.north[1] / texHeight), (float)(cube->uv.north[2] / texWidth), (float)(cube->uv.north[3] / texHeight),
+            (float)(cube->uv.up[0] / texWidth), (float)(cube->uv.up[1] / texHeight), (float)(cube->uv.up[2] / texWidth), (float)(cube->uv.up[3] / texHeight),
+            (float)(cube->uv.down[0] / texWidth), (float)(cube->uv.down[1] / texHeight), (float)(cube->uv.down[2] / texWidth), (float)(cube->uv.down[3] / texHeight),
+        });
+    }
+    for (auto child: bone->children)
+    {
+        push_cubes(cubes, child, poseBone, texWidth, texHeight);
+    }
+}
 
 int main()
 {
@@ -60,30 +68,15 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
 
     glViewport(0, 0, WindowWidth, WindowHeight);
-
-    Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
-
-    prog.input.setVertices(vertices);
-    prog.input.loadMemoryModel(
-        &VertexIn::origin,
-        &VertexIn::size,
-        &VertexIn::rotation,
-        &VertexIn::uv_east,
-        &VertexIn::uv_south,
-        &VertexIn::uv_west,
-        &VertexIn::uv_north,
-        &VertexIn::uv_up,
-        &VertexIn::uv_down
-    );
 
     // stbi_set_flip_vertically_on_load(true);
     stbi_flip_vertically_on_write(true);
 
     int texWidth, texHeight, nChannels;
-    unsigned char* tex = stbi_load("../.cache/cirno_fumo.png", &texWidth, &texHeight, &nChannels, 0);
+    unsigned char* tex = stbi_load("../.cache/assets/geckolib/textures/entity/winefox.png", &texWidth, &texHeight, &nChannels, 0);
     if (tex == NULL)
     {
         logger.error("{}", stbi_failure_reason());
@@ -91,10 +84,41 @@ int main()
     }
 
     Texture texture{};
-    texture.allocate(texWidth, texWidth, GL_RGBA8);
-    texture.buffer(0, 0, texWidth, texWidth, GL_RGBA, tex);
+
+    texture.bind();
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    texture.unbind();
+
+    texture.allocate(texWidth, texHeight, GL_RGBA8);
+    texture.buffer(0, 0, texWidth, texHeight, GL_RGBA, tex);
 
     stbi_image_free(tex);
+
+    std::vector<Cube<>> cubes;
+
+    // "../.cache/assets/geckolib/models/entity/winefox.json"
+    Model model("../.cache/assets/geckolib/models/entity/winefox.json", "../.cache/assets/geckolib/textures/entity/winefox.png");
+    PoseTransform id_pose{Quaternion(1, 0, 0, 0), Quaternion(0, 0, 0, 0)};
+    for (auto bone: model.bones)
+    {
+        push_cubes(cubes, bone, id_pose, texWidth, texHeight);
+    }
+
+    Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
+
+    prog.input.setVertices(cubes);
+    prog.input.loadMemoryModel(
+        &Cube<>::origin,
+        &Cube<>::size,
+        &Cube<>::rotation,
+        &Cube<>::uv_east,
+        &Cube<>::uv_south,
+        &Cube<>::uv_west,
+        &Cube<>::uv_north,
+        &Cube<>::uv_up,
+        &Cube<>::uv_down
+    );
 
     prog.set<const Texture&>("altas", texture);
 
@@ -115,7 +139,7 @@ int main()
                 {
                     unsigned char* img = new unsigned char[WindowWidth * WindowHeight * 3];
                     glReadPixels(0, 0, WindowWidth, WindowHeight, GL_RGB, GL_UNSIGNED_BYTE, img);
-                    stbi_write_png("screenshot.png", WindowWidth, WindowHeight, 3, img, 0);
+                    stbi_write_png("../.cache/screenshot.png", WindowWidth, WindowHeight, 3, img, 0);
                     delete[] img;
                 }
             }

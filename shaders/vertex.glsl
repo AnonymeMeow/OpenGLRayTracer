@@ -37,14 +37,14 @@ void main()
 {
     float angle = float(frame) / 1000.f;
     mat3 rot1 = mat3(
-        cos(angle), 0, sin(angle),
+        cos(angle), 0, -sin(angle),
         0, 1, 0,
-        -sin(angle), 0, cos(angle)
+        sin(angle), 0, cos(angle)
     );
     mat3 rot2 = mat3(
         1, 0, 0,
-        0, cos(0.6), -sin(0.6),
-        0, sin(0.6), cos(0.6)
+        0, cos(0.4), -sin(0.4),
+        0, sin(0.4), cos(0.4)
     );
     vec4 q = vec4(rotation, sqrt(1 - dot(rotation, rotation)));
     mat3 rot0 = 2 * mat3(
@@ -53,7 +53,7 @@ void main()
         q.x * q.z + q.y * q.w, q.y * q.z - q.x * q.w, 1 - q.x * q.x - q.y * q.y
     ) - diag(vec3(1));
     mat3 transform = diag(vec3(-1, 1, 1));
-    origin_vs   = rot2 * rot1 * transform * origin;
+    origin_vs   = rot2 * rot1 * transform * origin + vec3(0, -20.f, 40.f);
     edges_vs    = rot2 * rot1 * transform * rot0 * diag(size);
     uv_vs.east  = uv_east;
     uv_vs.south = uv_south;
