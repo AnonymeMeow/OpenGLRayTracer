@@ -17,9 +17,18 @@ in UV
 
 out vec2 texCoord;
 
+struct Camera
+{
+    vec3 position;
+    vec2 orientation;
+    float hfov, d;
+};
+
+uniform Camera camera;
+
 vec4 position(vec3 pos)
 {
-    return vec4(pos, 3.5f + pos.z);
+    return vec4(pos.xy, (pos.z - camera.d) * camera.hfov, (pos.z + camera.d) * camera.hfov);
 }
 
 void triangle(vec3 v1, vec3 v2, vec3 v3, vec2 t1, vec2 t2, vec2 t3)
