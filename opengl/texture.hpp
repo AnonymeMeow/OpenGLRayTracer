@@ -10,10 +10,11 @@ public:
     void bind() const;
     void unbind() const;
     void allocate(GLsizei, GLsizei, GLenum) const;
-    template <typename T>
+    template <is_gl_type T>
+        requires (!std::is_same_v<T, GLdouble>)
     void buffer(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, const T* data) const
     {
-        glTextureSubImage2D(id, 0, x, y, width, height, format, GetGLTypeEnum<T>::value, data);
+        glTextureSubImage2D(id, 0, x, y, width, height, format, gl_type_enum_v<T>, data);
     }
     ~Texture();
 };

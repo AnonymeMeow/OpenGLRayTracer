@@ -42,11 +42,11 @@ public:
         unbind();
         unbindVBO();
     }
-    template <typename T>
+    template <is_one_of<GLubyte, GLushort, GLuint> T>
     void setIndices(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW)
     {
         indexCount = data.size();
-        indexType = GetGLTypeEnum<T>::value;
+        indexType = gl_type_enum_v<T>;
 
         bind();
         bindEBO();
@@ -55,6 +55,7 @@ public:
         unbindEBO();
     }
     template <typename T, typename... Members>
+        requires (is_gl_type<typename GetArraySize<Members>::Type> && ...)
     void loadMemoryModel(Members (T::* const... members)) const
     {
         bind();
@@ -66,7 +67,7 @@ public:
                 glVertexAttribPointer(
                     index,
                     GetArraySize<Members>::Size,
-                    GetGLTypeEnum<typename GetArraySize<Members>::Type>::value,
+                    gl_type_enum_v<typename GetArraySize<Members>::Type>,
                     GL_FALSE,
                     sizeof(T),
                     static_cast<const void*>(&(((T*)nullptr)->*members))

@@ -121,7 +121,7 @@ int main()
         &Cube<>::uv_down
     );
 
-    prog.set<const Texture&>("altas", texture);
+    prog.set("altas", texture);
 
     Camera camera{-15, 35, -15, -0.4, 0.75, 1, 1, 0.2, 0.003, 0.02, 0.05, 0.2};
 
@@ -207,7 +207,7 @@ int main()
         glClearColor(0.5f, 0.5f, 0.5f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        prog.set<const Camera&>("camera", camera);
+        prog.set("camera", camera);
         prog.draw();
 
         SDL_GL_SwapWindow(window);

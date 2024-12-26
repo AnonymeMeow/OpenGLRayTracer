@@ -30,9 +30,9 @@ void VertexInput::unbindEBO() const
 
 void VertexInput::draw() const
 {
-    bind();
     if (vertexCount)
     {
+        bind();
         if (indexCount)
         {
             glDrawElements(drawMode, indexCount, indexType, 0);
@@ -41,12 +41,12 @@ void VertexInput::draw() const
         {
             glDrawArrays(drawMode, 0, vertexCount);
         }
+        unbind();
     }
     else
     {
         openglLogger.info("VBO has size 0 when draw call is invoked, skip.");
     }
-    unbind();
 }
 
 void VertexInput::bind() const

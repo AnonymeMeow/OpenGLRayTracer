@@ -13,7 +13,7 @@ Logger modelLogger("Model");
 Model::Model(const std::filesystem::path& model_path, const std::filesystem::path& texture_path)
 {
     std::ifstream model_file(model_path);
-    if (!model_file.is_open())
+    if (!model_file)
     {
         modelLogger.error("Failed to open model file: {}.", model_path.string());
         exit(-1);

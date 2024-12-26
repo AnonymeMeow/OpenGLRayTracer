@@ -1,4 +1,5 @@
 #include "texture.hpp"
+
 #include "shader.hpp"
 
 Texture::Texture()

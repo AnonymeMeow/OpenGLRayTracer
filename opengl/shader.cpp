@@ -2,44 +2,51 @@
 
 #include <fstream>
 
-Shader::Shader(GLenum shader_type, const char* source_path):
-    type(shader_type),
-    id(glCreateShader(shader_type))
+class Shader
 {
-    std::ifstream src_file(source_path);
-    if (!src_file)
+    const GLenum type;
+    const GLuint id;
+    friend class Program;
+public:
+    Shader(GLenum shader_type, const char* source_path):
+        type(shader_type),
+        id(glCreateShader(shader_type))
     {
-        openglLogger.error("Cannot open shader source file: {}.", source_path);
-        exit(-1);
-    }
-    std::string line;
-    std::string src_str;
-    while (std::getline(src_file, line))
-    {
-        src_str += line + '\n';
-    }
-    src_file.close();
-    const GLchar* src = src_str.c_str();
-    glShaderSource(id, 1, &src, NULL);
-    glCompileShader(id);
+        std::ifstream src_file(source_path);
+        if (!src_file)
+        {
+            openglLogger.error("Cannot open shader source file: {}.", source_path);
+            exit(-1);
+        }
+        std::string line;
+        std::string src_str;
+        while (std::getline(src_file, line))
+        {
+            src_str += line + '\n';
+        }
+        src_file.close();
+        const GLchar* src = src_str.c_str();
+        glShaderSource(id, 1, &src, NULL);
+        glCompileShader(id);
 
-    GLint status;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &status);
-    if (status != GL_TRUE)
-    {
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &status);
-        char* log_info = new char[status + 1];
-        glGetShaderInfoLog(id, status, NULL, log_info);
-        openglLogger.error("Shader compilation error: at file {}\n{}", source_path, log_info);
-        delete[] log_info;
-        exit(-1);
+        GLint status;
+        glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+        if (status != GL_TRUE)
+        {
+            glGetShaderiv(id, GL_INFO_LOG_LENGTH, &status);
+            char* log_info = new char[status + 1];
+            glGetShaderInfoLog(id, status, NULL, log_info);
+            openglLogger.error("Shader compilation error: at file {}\n{}", source_path, log_info);
+            delete[] log_info;
+            exit(-1);
+        }
     }
-}
 
-Shader::~Shader()
-{
-    glDeleteShader(id);
-}
+    ~Shader()
+    {
+        glDeleteShader(id);
+    }
+};
 
 Program::Program(const char* vertex_source, const char* fragment_source, GLenum drawMode):
     id(glCreateProgram()),
