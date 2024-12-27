@@ -17,14 +17,7 @@ in UV
 
 out vec2 texCoord;
 
-struct Camera
-{
-    vec3 position;
-    vec2 orientation;
-    float hfov, d;
-};
-
-uniform Camera camera;
+#include camera.glsl
 
 vec4 position(vec3 pos)
 {

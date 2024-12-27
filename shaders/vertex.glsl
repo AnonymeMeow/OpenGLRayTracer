@@ -22,14 +22,7 @@ out UV
     vec4 down;
 } uv_vs;
 
-struct Camera
-{
-    vec3 position;
-    vec2 orientation;
-    float hfov, d;
-};
-
-uniform Camera camera;
+#include camera.glsl
 
 mat3 diag(vec3 v)
 {

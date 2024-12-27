@@ -7,25 +7,60 @@ class Shader
     const GLenum type;
     const GLuint id;
     friend class Program;
+
+    static bool is_white(char c)
+    {
+        return c == '\t' || c == ' ';
+    }
+
+    static std::string get_token(std::string::iterator& iter, std::string::iterator end)
+    {
+        std::string token;
+        while (iter != end && is_white(*iter))
+            iter++;
+        while (iter != end && !is_white(*iter))
+        {
+            token += *iter;
+            iter++;
+        }
+        return token;
+    }
 public:
-    Shader(GLenum shader_type, const char* source_path):
+    static std::string get_file_source(const fs::path& file_path)
+    {
+        std::ifstream file(file_path);
+        if (!file)
+        {
+            openglLogger.error("Cannot open shader source file: {}.", file_path.string());
+            exit(-1);
+        }
+        std::string line_buffer, src_buffer;
+        while (std::getline(file, line_buffer))
+        {
+            auto line_iter = line_buffer.begin();
+            if (get_token(line_iter, line_buffer.end()).compare("#include") == 0)
+            {
+                std::string include_file_path = get_token(line_iter, line_buffer.end());
+                if (include_file_path.empty())
+                {
+                    openglLogger.error("In shader file {}: #include expects FILENAME.", file_path.string());
+                    exit(-1);
+                }
+                src_buffer += get_file_source(file_path.parent_path() / include_file_path) + '\n';
+                continue;
+            }
+            src_buffer += line_buffer + '\n';
+        }
+        file.close();
+        return src_buffer;
+    }
+
+    Shader(GLenum shader_type, const fs::path& source_path):
         type(shader_type),
         id(glCreateShader(shader_type))
     {
-        std::ifstream src_file(source_path);
-        if (!src_file)
-        {
-            openglLogger.error("Cannot open shader source file: {}.", source_path);
-            exit(-1);
-        }
-        std::string line;
-        std::string src_str;
-        while (std::getline(src_file, line))
-        {
-            src_str += line + '\n';
-        }
-        src_file.close();
-        const GLchar* src = src_str.c_str();
+        std::string shader_source = get_file_source(source_path);
+        const GLchar* src = shader_source.c_str();
         glShaderSource(id, 1, &src, NULL);
         glCompileShader(id);
 
@@ -36,7 +71,7 @@ public:
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &status);
             char* log_info = new char[status + 1];
             glGetShaderInfoLog(id, status, NULL, log_info);
-            openglLogger.error("Shader compilation error: at file {}\n{}", source_path, log_info);
+            openglLogger.error("Shader compilation error: at file {}\n{}", source_path.string(), log_info);
             delete[] log_info;
             exit(-1);
         }
@@ -48,7 +83,7 @@ public:
     }
 };
 
-Program::Program(const char* vertex_source, const char* fragment_source, GLenum drawMode):
+Program::Program(const fs::path& vertex_source, const fs::path& fragment_source, GLenum drawMode):
     id(glCreateProgram()),
     input(VertexInput(drawMode))
 {
@@ -64,7 +99,7 @@ Program::Program(const char* vertex_source, const char* fragment_source, GLenum 
     glDetachShader(id, fragment.id);
 }
 
-Program::Program(const char* vertex_source, const char* geometry_source, const char* fragment_source, GLenum drawMode):
+Program::Program(const fs::path& vertex_source, const fs::path& geometry_source, const fs::path& fragment_source, GLenum drawMode):
     id(glCreateProgram()),
     input(VertexInput(drawMode))
 {

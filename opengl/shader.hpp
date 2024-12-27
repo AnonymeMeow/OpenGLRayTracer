@@ -2,7 +2,10 @@
 
 #include "texture.hpp"
 #include "vertex.hpp"
+#include <filesystem>
 #include <map>
+
+namespace fs = std::filesystem;
 
 template <typename... Ts>
 struct _are_all_the_same
@@ -29,8 +32,8 @@ class Program
     void link() const;
 public:
     VertexInput input;
-    Program(const char*, const char*, GLenum);
-    Program(const char*, const char*, const char*, GLenum);
+    Program(const fs::path&, const fs::path&, GLenum);
+    Program(const fs::path&, const fs::path&, const fs::path&, GLenum);
     void activate() const;
     void deactivate() const;
     template <gl_uniform_type... Args>
