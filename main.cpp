@@ -1,8 +1,8 @@
-#include "model/camera.hpp"
 #include "model/cube.hpp"
-#include "model/model.hpp"
 #include "model/pose.hpp"
+#include "model/scene.hpp"
 #include "opengl/shader.hpp"
+#include "view/sdl.hpp"
 
 #include <SDL2/SDL.h>
 
@@ -48,30 +48,8 @@ int main()
 {
     Logger logger{"Main"};
 
-    SDL_Window* window = SDL_CreateWindow(
-        "RayTrace",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        WindowWidth,
-        WindowHeight,
-        SDL_WINDOW_OPENGL
-    );
-    if (window == NULL)
-    {
-        logger.error("{}", SDL_GetError());
-        exit(-1);
-    }
-    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    if (gl_context == NULL)
-    {
-        logger.error("{}", SDL_GetError());
-        exit(-1);
-    }
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glViewport(0, 0, WindowWidth, WindowHeight);
+    auto scene = Scene("../assets/scene.json");
+    SDL_Context window(scene.window_size[0], scene.window_size[1], scene.window_name, {-15, 35, -15, -0.4, 0.75, 1, 1, 0.2, 0.003, 0.02, 0.05, 0.2});
 
     // stbi_set_flip_vertically_on_load(true);
     stbi_flip_vertically_on_write(true);
@@ -98,10 +76,9 @@ int main()
 
     std::vector<Cube<>> cubes;
 
-    // "../.cache/assets/geckolib/models/entity/winefox.json"
-    Model model("../.cache/assets/geckolib/models/entity/winefox.json", "../.cache/assets/geckolib/textures/entity/winefox.png");
+    const Model& model = scene.objects[0].model;
     PoseTransform id_pose{Quaternion(1, 0, 0, 0), Quaternion(0, 0, 0, 0)};
-    for (auto bone: model.bones)
+    for (const auto bone: model.bones)
     {
         push_cubes(cubes, bone, id_pose, texWidth, texHeight);
     }
@@ -122,8 +99,6 @@ int main()
     );
 
     prog.set("altas", texture);
-
-    Camera camera{-15, 35, -15, -0.4, 0.75, 1, 1, 0.2, 0.003, 0.02, 0.05, 0.2};
 
     bool running = true;
     const Uint8* key_states = SDL_GetKeyboardState(nullptr);
@@ -154,7 +129,7 @@ int main()
                 }
                 else if (event.key.keysym.sym == SDLK_r)
                 {
-                    camera.reset_fov();
+                    window.camera.reset_fov();
                 }
             }
             else if (event.type == SDL_MOUSEMOTION)
@@ -176,45 +151,42 @@ int main()
             }
         }
 
-        float modifier = key_states[SDL_SCANCODE_LCTRL]? camera.ctrl_sensitivity_modifier: 1;
+        float modifier = key_states[SDL_SCANCODE_LCTRL]? window.camera.ctrl_sensitivity_modifier: 1;
 
         if (mouse_motion.have_motion)
         {
             if (mouse_motion.left && !mouse_motion.right)
             {
-                camera.turn_head(-mouse_motion.xrel, -mouse_motion.yrel, camera.mouse_rotation_sensitivity * modifier);
+                window.camera.turn_head(-mouse_motion.xrel, -mouse_motion.yrel, window.camera.mouse_rotation_sensitivity * modifier);
             }
             else if (mouse_motion.right && !mouse_motion.left)
             {
-                camera.move_relative(mouse_motion.xrel, mouse_motion.yrel, 0, camera.mouse_move_sensitivity * modifier);
+                window.camera.move_relative(mouse_motion.xrel, mouse_motion.yrel, 0, window.camera.mouse_move_sensitivity * modifier);
             }
             mouse_motion.have_motion = false;
         }
 
         if (mouse_motion.have_wheel)
         {
-            camera.zoom(mouse_motion.wheel, camera.mouse_zoom_sensitivity * modifier);
+            window.camera.zoom(mouse_motion.wheel, window.camera.mouse_zoom_sensitivity * modifier);
             mouse_motion.have_wheel = false;
         }
 
-        camera.move_relative_yaw(
+        window.camera.move_relative_yaw(
             key_states[SDL_SCANCODE_A] - key_states[SDL_SCANCODE_D],
             key_states[SDL_SCANCODE_SPACE] - key_states[SDL_SCANCODE_LSHIFT],
             key_states[SDL_SCANCODE_W] - key_states[SDL_SCANCODE_S],
-            camera.keyboard_sensitivity * modifier
+            window.camera.keyboard_sensitivity * modifier
         );
 
         glClearColor(0.5f, 0.5f, 0.5f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        prog.set("camera", camera);
+        prog.set("camera", window.camera);
         prog.draw();
 
-        SDL_GL_SwapWindow(window);
+        window.swap();
     }
-
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
 
     return 0;
 }

@@ -3,10 +3,12 @@
 #include <filesystem>
 #include <json/value.h>
 
+namespace fs = std::filesystem;
+
 class Model
 {
-    bool check_texture_size(const std::filesystem::path&, const Json::Value&, const std::string&, const std::string&);
-    void read_bones(const Json::Value&, const std::filesystem::path&);
+    bool check_texture_size(const fs::path&, const Json::Value&, const std::string&, const std::string&);
+    void read_bones(const Json::Value&, const fs::path&);
 public:
     struct Cube
     {
@@ -37,6 +39,6 @@ public:
 
     std::vector<Bone*> bones;
 
-    Model(const std::filesystem::path&, const std::filesystem::path&);
+    Model(const fs::path&, const fs::path&);
     ~Model();
 };

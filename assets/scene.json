@@ -1,0 +1,24 @@
+{
+    "window_size": [1000, 1000],
+    "window_name": "RayTrace",
+    "camera": {
+        "position": [0, 35, 0],
+        "orientation": [0, 0],
+        "fov": 1,
+        "d": 1,
+        "keyboard_sensitivity": 0.2,
+        "mouse_rotation_sensitivity": 0.003,
+        "mouse_move_sensitivity": 0.02,
+        "mouse_zoom_sensitivity": 0.05,
+        "ctrl_sensitivity_modifier": 0.2
+    },
+    "objects": [
+        {
+            "position": [0, 0, 0],
+            "rotation": [0, 0, 0],
+            "zoom": 1,
+            "model": "../.cache/assets/geckolib/models/entity/winefox.json",
+            "texture": "../.cache/assets/geckolib/textures/entity/winefox.png"
+        }
+    ]
+}

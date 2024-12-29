@@ -13,6 +13,7 @@ endfunction()
 append_src_list(console)
 append_src_list(model)
 append_src_list(opengl)
+append_src_list(view)
 
 add_executable(RayTracer ${src})
 

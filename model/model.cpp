@@ -10,7 +10,7 @@
 
 Logger modelLogger("Model");
 
-Model::Model(const std::filesystem::path& model_path, const std::filesystem::path& texture_path)
+Model::Model(const fs::path& model_path, const fs::path& texture_path)
 {
     std::ifstream model_file(model_path);
     if (!model_file)
@@ -94,7 +94,7 @@ Model::Model(const std::filesystem::path& model_path, const std::filesystem::pat
     }
 }
 
-bool Model::check_texture_size(const std::filesystem::path& texture_path, const Json::Value& geometry, const std::string& width_field, const std::string& height_field)
+bool Model::check_texture_size(const fs::path& texture_path, const Json::Value& geometry, const std::string& width_field, const std::string& height_field)
 {
     int texture_width, texture_height, n;
     if (stbi_info(texture_path.c_str(), &texture_width, &texture_height, &n) == 0)
@@ -111,7 +111,7 @@ bool Model::check_texture_size(const std::filesystem::path& texture_path, const 
     return texture_width == geometry[width_field].asInt() && texture_height == geometry[height_field].asInt();
 }
 
-void Model::read_bones(const Json::Value& bones, const std::filesystem::path& model_path)
+void Model::read_bones(const Json::Value& bones, const fs::path& model_path)
 {
     std::map<std::string, Bone*> bone_map;
     for (const Json::Value& bone: bones)
