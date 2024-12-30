@@ -32,13 +32,17 @@ public:
         double pivot[3];
         double rotation[3];
         bool mirror;
-        std::vector<Bone*> children;
-        std::vector<Cube*> cubes;
-        ~Bone();
+        std::vector<std::unique_ptr<Bone>> children;
+        std::vector<std::unique_ptr<Cube>> cubes;
     };
 
-    std::vector<Bone*> bones;
+    std::vector<std::unique_ptr<Bone>> bones;
+    struct TexInfo
+    {
+        fs::path path;
+        int location[2];
+        int size[2];
+    } tex_info;
 
     Model(const fs::path&, const fs::path&);
-    ~Model();
 };

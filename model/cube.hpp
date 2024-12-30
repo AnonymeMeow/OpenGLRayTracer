@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../opengl/shader.hpp"
+#include "../opengl/texture.hpp"
 #include "model.hpp"
 #include "pose.hpp"
 
@@ -39,42 +39,31 @@ template <
 >
 struct Cube: _cube_origin_size<PositionDataType>, _cube_rotation<PositionDataType>, _cube_uv<TextureDataType>
 {
-    Cube(const Model::Cube& cube, const Quaternion& position, const Quaternion& rotation, int tex_width, int tex_height):
-        _cube_origin_size<PositionDataType>{
-            (PositionDataType)position.x, (PositionDataType)position.y, (PositionDataType)position.z,
-            (PositionDataType)cube.size[0], (PositionDataType)cube.size[1], (PositionDataType)cube.size[2]
-        },
-        _cube_rotation<PositionDataType>{(PositionDataType)rotation.x, (PositionDataType)rotation.y, (PositionDataType)rotation.z, (PositionDataType)rotation.w},
+    Cube(const Model::Cube& cube, const PoseTransform& cube_pose, const PoseTransform& model_pose, double zoom, const Model::TexInfo& tex_info, int tex_width, int tex_height):
         _cube_uv<TextureDataType>{
-            (TextureDataType)(cube.uv.east[0] / tex_width), (TextureDataType)(cube.uv.east[1] / tex_height), (TextureDataType)(cube.uv.east[2] / tex_width), (TextureDataType)(cube.uv.east[3] / tex_height),
-            (TextureDataType)(cube.uv.south[0] / tex_width), (TextureDataType)(cube.uv.south[1] / tex_height), (TextureDataType)(cube.uv.south[2] / tex_width), (TextureDataType)(cube.uv.south[3] / tex_height),
-            (TextureDataType)(cube.uv.west[0] / tex_width), (TextureDataType)(cube.uv.west[1] / tex_height), (TextureDataType)(cube.uv.west[2] / tex_width), (TextureDataType)(cube.uv.west[3] / tex_height),
-            (TextureDataType)(cube.uv.north[0] / tex_width), (TextureDataType)(cube.uv.north[1] / tex_height), (TextureDataType)(cube.uv.north[2] / tex_width), (TextureDataType)(cube.uv.north[3] / tex_height),
-            (TextureDataType)(cube.uv.up[0] / tex_width), (TextureDataType)(cube.uv.up[1] / tex_height), (TextureDataType)(cube.uv.up[2] / tex_width), (TextureDataType)(cube.uv.up[3] / tex_height),
-            (TextureDataType)(cube.uv.down[0] / tex_width), (TextureDataType)(cube.uv.down[1] / tex_height), (TextureDataType)(cube.uv.down[2] / tex_width), (TextureDataType)(cube.uv.down[3] / tex_height)
+            (TextureDataType)((cube.uv.east[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.east[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.east[2] / tex_width), (TextureDataType)(cube.uv.east[3] / tex_height),
+            (TextureDataType)((cube.uv.south[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.south[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.south[2] / tex_width), (TextureDataType)(cube.uv.south[3] / tex_height),
+            (TextureDataType)((cube.uv.west[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.west[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.west[2] / tex_width), (TextureDataType)(cube.uv.west[3] / tex_height),
+            (TextureDataType)((cube.uv.north[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.north[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.north[2] / tex_width), (TextureDataType)(cube.uv.north[3] / tex_height),
+            (TextureDataType)((cube.uv.up[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.up[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.up[2] / tex_width), (TextureDataType)(cube.uv.up[3] / tex_height),
+            (TextureDataType)((cube.uv.down[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.down[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.down[2] / tex_width), (TextureDataType)(cube.uv.down[3] / tex_height)
         }
-    {}
+    {
+        Quaternion origin(0, cube.origin[0], cube.origin[1], cube.origin[2]);
+        origin = model_pose * (cube_pose * origin * zoom);
+        Quaternion rotation = (model_pose * cube_pose).rotation;
+        new(static_cast<_cube_origin_size<PositionDataType>*>(this)) _cube_origin_size<PositionDataType>{
+            (PositionDataType)origin.x, (PositionDataType)origin.y, (PositionDataType)origin.z,
+            (PositionDataType)(cube.size[0] * zoom), (PositionDataType)(cube.size[1] * zoom), (PositionDataType)(cube.size[2] * zoom)
+        };
+        new(static_cast<_cube_rotation<PositionDataType>*>(this)) _cube_rotation<PositionDataType>{
+            (PositionDataType)rotation.x, (PositionDataType)rotation.y, (PositionDataType)rotation.z, (PositionDataType)rotation.w
+        };
+    }
 };
 
 template <gl_floating_point P = GLfloat, gl_floating_point T = GLfloat>
-struct CubeArray: std::vector<Cube<P, T>>
-{
-    void set_input(Program& program) const
-    {
-        program.input.loadMemoryModel<Cube<P, T>>(
-            &Cube<P, T>::origin,
-            &Cube<P, T>::size,
-            &Cube<P, T>::rotation,
-            &Cube<P, T>::east,
-            &Cube<P, T>::south,
-            &Cube<P, T>::west,
-            &Cube<P, T>::north,
-            &Cube<P, T>::up,
-            &Cube<P, T>::down
-        );
-        program.input.setVertices(*this);
-    }
-};
+using CubeArray = std::vector<Cube<P, T>>;
 
 template <
     gl_floating_point PositionDataType = GLfloat,

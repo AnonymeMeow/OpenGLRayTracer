@@ -5,6 +5,7 @@
 #include <cmath>
 #include <fstream>
 #include <json/json.h>
+#include <memory>
 #include <optional>
 #include <stb/stb_image.h>
 
@@ -108,6 +109,9 @@ bool Model::check_texture_size(const fs::path& texture_path, const Json::Value& 
         modelLogger.error("Could not find information about texture {}'s size in model file.", texture_path.string());
         exit(-1);
     }
+    tex_info.size[0] = texture_width;
+    tex_info.size[1] = texture_height;
+    tex_info.path = texture_path;
     return texture_width == geometry[width_field].asInt() && texture_height == geometry[height_field].asInt();
 }
 
@@ -140,7 +144,7 @@ void Model::read_bones(const Json::Value& bones, const fs::path& model_path)
             if (bone_map.contains(parent_name))
             {
                 parent = bone_map[parent_name];
-                bone_map[parent_name]->children.push_back(new_bone);
+                bone_map[parent_name]->children.push_back(std::unique_ptr<Bone>(new_bone));
             }
             else
             {
@@ -150,7 +154,7 @@ void Model::read_bones(const Json::Value& bones, const fs::path& model_path)
         }
         else
         {
-            this->bones.push_back(new_bone);
+            this->bones.push_back(std::unique_ptr<Bone>(new_bone));
         }
         bone_map[name] = new_bone;
         if (!bone.isMember("pivot") || !bone["pivot"].isArray() || bone["pivot"].size() != 3)
@@ -376,28 +380,8 @@ void Model::read_bones(const Json::Value& bones, const fs::path& model_path)
                     new_cube->uv.down[0] = new_cube->uv.down[0] + new_cube->uv.down[2];
                     new_cube->uv.down[2] = - new_cube->uv.down[2];
                 }
-                new_bone->cubes.push_back(new_cube);
+                new_bone->cubes.push_back(std::unique_ptr<Cube>(new_cube));
             }
         }
-    }
-}
-
-Model::~Model()
-{
-    for (Bone* bone: this->bones)
-    {
-        delete bone;
-    }
-}
-
-Model::Bone::~Bone()
-{
-    for (Bone* child: this->children)
-    {
-        delete child;
-    }
-    for (Cube* cube: this->cubes)
-    {
-        delete cube;
     }
 }

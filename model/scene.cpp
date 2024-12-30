@@ -2,10 +2,34 @@
 
 #include "../console/logger.hpp"
 
+#include <cmath>
 #include <fstream>
 #include <json/json.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
 extern Logger modelLogger;
+
+const Json::Value& aquire_array(const Json::Value& json, const char* const name, int size, const fs::path& path)
+{
+    if (!json.isMember(name) || !json[name].isArray() || (size != 0 && json[name].size() != size))
+    {
+        modelLogger.error("Scene file {} does not have a valid `{}` array field.", path.string(), name);
+        exit(-1);
+    }
+    return json[name];
+}
+
+const Json::Value& aquire_double(const Json::Value& json, const char* const name, const fs::path& path)
+{
+    if (!json.isMember(name) || !json[name].isDouble())
+    {
+        modelLogger.error("Scene file {} does not have a valid `{}` field.", path.string(), name);
+        exit(-1);
+    }
+    return json[name];
+}
 
 Scene::Scene(const fs::path& scene_path)
 {
@@ -24,38 +48,42 @@ Scene::Scene(const fs::path& scene_path)
         modelLogger.error("Scene file {} is not a JSON object.", scene_path.string());
         exit(-1);
     }
-    if (!scene_json.isMember("window_size") || !scene_json["window_size"].isArray() || scene_json["window_size"].size() != 2)
-    {
-        modelLogger.error("Scene file {} does not have a valid `window_size` field.", scene_path.string());
-        exit(-1);
-    }
-    const Json::Value& window_size_json = scene_json["window_size"];
+    const Json::Value& window_size_json = aquire_array(scene_json, "window_size", 2, scene_path);
     window_size[0] = window_size_json[0].asInt();
     window_size[1] = window_size_json[1].asInt();
-    if (!scene_json.isMember("window_name") || !scene_json["window_name"].isString())
+    if (scene_json.isMember("window_name"))
     {
-        modelLogger.error("Scene file {} does not have a valid `window_name` field.", scene_path.string());
-        exit(-1);
+        if (!scene_json["window_name"].isString())
+        {
+            modelLogger.error("Scene file {} have an invalid `window_name` field.", scene_path.string());
+            exit(-1);
+        }
+        window_name = scene_json["window_name"].asString();
     }
-    window_name = scene_json["window_name"].asString();
+    else
+    {
+        window_name = "RayTrace";
+    }
     if (!scene_json.isMember("camera") || !scene_json["camera"].isObject())
     {
         modelLogger.error("Scene file {} does not have a valid `camera` field.", scene_path.string());
         exit(-1);
     }
     const Json::Value& camera_json = scene_json["camera"];
-    camera.position[0] = camera_json["position"][0].asDouble();
-    camera.position[1] = camera_json["position"][1].asDouble();
-    camera.position[2] = camera_json["position"][2].asDouble();
-    camera.orientation[0] = camera_json["orientation"][0].asDouble();
-    camera.orientation[1] = camera_json["orientation"][1].asDouble();
-    camera.fov = camera_json["fov"].asDouble();
-    camera.d = camera_json["d"].asDouble();
-    camera.keyboard_sensitivity = camera_json["keyboard_sensitivity"].asDouble();
-    camera.mouse_rotation_sensitivity = camera_json["mouse_rotation_sensitivity"].asDouble();
-    camera.mouse_move_sensitivity = camera_json["mouse_move_sensitivity"].asDouble();
-    camera.mouse_zoom_sensitivity = camera_json["mouse_zoom_sensitivity"].asDouble();
-    camera.ctrl_sensitivity_modifier = camera_json["ctrl_sensitivity_modifier"].asDouble();
+    const Json::Value& camera_position_json = aquire_array(camera_json, "position", 3, scene_path);
+    camera.position[0] = camera_position_json[0].asDouble();
+    camera.position[1] = camera_position_json[1].asDouble();
+    camera.position[2] = camera_position_json[2].asDouble();
+    const Json::Value& camera_orien_json = aquire_array(camera_json, "orientation", 2, scene_path);
+    camera.orientation[0] = camera_orien_json[0].asDouble();
+    camera.orientation[1] = camera_orien_json[1].asDouble();
+    camera.fov = aquire_double(camera_json, "fov", scene_path).asDouble();
+    camera.d = aquire_double(camera_json, "d", scene_path).asDouble();
+    camera.keyboard_sensitivity = aquire_double(camera_json, "keyboard_sensitivity", scene_path).asDouble();
+    camera.mouse_rotation_sensitivity = aquire_double(camera_json, "mouse_rotation_sensitivity", scene_path).asDouble();
+    camera.mouse_move_sensitivity = aquire_double(camera_json, "mouse_move_sensitivity", scene_path).asDouble();
+    camera.mouse_zoom_sensitivity = aquire_double(camera_json, "mouse_zoom_sensitivity", scene_path).asDouble();
+    camera.ctrl_sensitivity_modifier = aquire_double(camera_json, "ctrl_sensitivity_modifier", scene_path).asDouble();
     if (scene_json.isMember("screenshot_save_path"))
     {
         if (!scene_json["screenshot_save_path"].isString())
@@ -81,24 +109,9 @@ Scene::Scene(const fs::path& scene_path)
             modelLogger.error("Scene file {} have a non-object `objects` element.", scene_path.string());
             exit(-1);
         }
-        if (!object_json.isMember("position") || !object_json["position"].isArray() || object_json["position"].size() != 3)
-        {
-            modelLogger.error("Scene file {} does not have a valid `position` field.", scene_path.string());
-            exit(-1);
-        }
-        const Json::Value& position_json = object_json["position"];
-        if (!object_json.isMember("rotation") || !object_json["rotation"].isArray() || object_json["rotation"].size() != 3)
-        {
-            modelLogger.error("Scene file {} does not have a valid `rotation` field.", scene_path.string());
-            exit(-1);
-        }
-        const Json::Value& rotation_json = object_json["rotation"];
-        if (!object_json.isMember("zoom") || !object_json["zoom"].isDouble())
-        {
-            modelLogger.error("Scene file {} does not have a valid `zoom` field.", scene_path.string());
-            exit(-1);
-        }
-        const Json::Value& zoom_json = object_json["zoom"];
+        const Json::Value& position_json = aquire_array(object_json, "position", 3, scene_path);
+        const Json::Value& rotation_json = aquire_array(object_json, "rotation", 3, scene_path);
+        const Json::Value& zoom_json = aquire_double(object_json, "zoom", scene_path);
         if (!object_json.isMember("model") || !object_json["model"].isString())
         {
             modelLogger.error("Scene file {} does not have a valid `model` field.", scene_path.string());
@@ -111,12 +124,7 @@ Scene::Scene(const fs::path& scene_path)
             exit(-1);
         }
         const Json::Value& texture_json = object_json["texture"];
-        objects.emplace_back(
-            position_json,
-            rotation_json,
-            zoom_json,
-            model_json.asString(),
-            texture_json.asString()
+        objects.emplace_back(position_json, rotation_json, zoom_json, model_json.asString(), texture_json.asString()
         );
     }
 }
@@ -128,8 +136,7 @@ Scene::Object::Object(
     const fs::path& model,
     const fs::path& texture
 ):
-    model(model, texture),
-    texture(texture)
+    model(model, texture)
 {
     position[0] = position_json[0].asDouble();
     position[1] = position_json[1].asDouble();
@@ -138,4 +145,54 @@ Scene::Object::Object(
     rotation[1] = rotation_json[1].asDouble();
     rotation[2] = rotation_json[2].asDouble();
     zoom = zoom_json.asDouble();
+}
+
+void Scene::gen_altas(const Texture& altas)
+{
+    int max_width = 0, max_height = 0;
+    for (const auto& object: objects)
+    {
+        if (object.model.tex_info.size[0] > max_width)
+        {
+            max_width = object.model.tex_info.size[0];
+            if (max_width > altas_max_width)
+            {
+                modelLogger.error("Texture {} too wide.", object.model.tex_info.path.string());
+                exit(-1);
+            }
+        }
+        if (object.model.tex_info.size[1] > max_height)
+        {
+            max_height = object.model.tex_info.size[1];
+        }
+    }
+    int rows = altas_max_width / max_width;
+    altas_width = rows * max_width;
+    altas_height = std::ceil((double)objects.size() / rows) * max_height;
+    altas.allocate(altas_width, altas_height, GL_RGBA8);
+    int i = 0, j = 0;
+    for (auto& object: objects)
+    {
+        object.model.tex_info.location[0] = i * max_width;
+        object.model.tex_info.location[1] = j * max_height;
+
+        int width, height, n;
+        unsigned char* tex = stbi_load(object.model.tex_info.path.c_str(), &width, &height, &n, 0);
+        if (tex == NULL)
+        {
+            modelLogger.error("Failed to load texture {}: {}.", object.model.tex_info.path.string(), stbi_failure_reason());
+            exit(-1);
+        }
+
+        altas.buffer(i * max_width, j * max_height, width, height, GL_RGBA, tex);
+
+        stbi_image_free(tex);
+
+        i++;
+        if (i >= rows)
+        {
+            j++;
+            i = 0;
+        }
+    }
 }

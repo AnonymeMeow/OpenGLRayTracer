@@ -1,34 +1,14 @@
-#include "model/cube.hpp"
-#include "model/pose.hpp"
 #include "model/scene.hpp"
 #include "opengl/shader.hpp"
 #include "view/sdl.hpp"
 
 #include <SDL2/SDL.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
 const int WindowWidth = 1000;
 const int WindowHeight = 1000;
-
-void push_cubes(std::vector<Cube<>>& cubes, Model::Bone* bone, const PoseTransform& pose, int texWidth, int texHeight)
-{
-    PoseTransform poseBone = pose * PoseTransform(bone->rotation, bone->pivot);
-    for (auto cube: bone->cubes)
-    {
-        PoseTransform poseCube = poseBone * PoseTransform(cube->rotation, cube->pivot);
-        Quaternion origin(0, cube->origin[0], cube->origin[1], cube->origin[2]);
-        origin = poseCube * origin;
-        cubes.emplace_back(*cube, origin, poseCube.rotation, texWidth, texHeight);
-    }
-    for (auto child: bone->children)
-    {
-        push_cubes(cubes, child, poseBone, texWidth, texHeight);
-    }
-}
 
 int main()
 {
@@ -40,40 +20,16 @@ int main()
     // stbi_set_flip_vertically_on_load(true);
     stbi_flip_vertically_on_write(true);
 
-    int texWidth, texHeight, nChannels;
-    unsigned char* tex = stbi_load("../.cache/assets/geckolib/textures/entity/winefox.png", &texWidth, &texHeight, &nChannels, 0);
-    if (tex == NULL)
-    {
-        logger.error("{}", stbi_failure_reason());
-        exit(-1);
-    }
+    Texture altas{};
+    scene.gen_altas(altas);
 
-    Texture texture{};
-
-    texture.bind();
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    texture.unbind();
-
-    texture.allocate(texWidth, texHeight, GL_RGBA8);
-    texture.buffer(0, 0, texWidth, texHeight, GL_RGBA, tex);
-
-    stbi_image_free(tex);
-
-    CubeArray<> cubes;
-
-    const Model& model = scene.objects[0].model;
-    PoseTransform id_pose{Quaternion(1, 0, 0, 0), Quaternion(0, 0, 0, 0)};
-    for (const auto bone: model.bones)
-    {
-        push_cubes(cubes, bone, id_pose, texWidth, texHeight);
-    }
+    auto cubes = scene.build_cube_array<>();
 
     Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
 
-    cubes.set_input(prog);
+    prog.set_input(cubes);
 
-    prog.set("altas", texture);
+    prog.set("altas", altas);
 
     bool running = true;
     const Uint8* key_states = SDL_GetKeyboardState(nullptr);

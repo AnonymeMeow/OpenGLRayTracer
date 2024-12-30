@@ -1,6 +1,5 @@
 {
     "window_size": [1000, 1000],
-    "window_name": "RayTrace",
     "camera": {
         "position": [0, 35, 0],
         "orientation": [0, 0],
@@ -14,11 +13,18 @@
     },
     "objects": [
         {
+            "position": [0, 39, 0],
+            "rotation": [0, 0, 0],
+            "zoom": 0.3,
+            "model": "../.cache/assets/geckolib/models/entity/winefox.json",
+            "texture": "../.cache/assets/geckolib/textures/entity/winefox.png"
+        },
+        {
             "position": [0, 0, 0],
             "rotation": [0, 0, 0],
             "zoom": 1,
-            "model": "../.cache/assets/geckolib/models/entity/winefox.json",
-            "texture": "../.cache/assets/geckolib/textures/entity/winefox.png"
+            "model": "../.cache/assets/geckolib/models/entity/foxmaid.json",
+            "texture": "../.cache/assets/geckolib/textures/entity/foxmaid.png"
         }
     ]
 }

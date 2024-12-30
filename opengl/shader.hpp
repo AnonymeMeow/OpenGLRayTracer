@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../model/cube.hpp"
 #include "texture.hpp"
 #include "vertex.hpp"
 #include <filesystem>
@@ -29,9 +30,9 @@ class Program
 {
     const GLuint id;
     std::map<const std::string, std::pair<const Texture*, GLuint>> boundTextures{};
+    VertexInput input;
     void link() const;
 public:
-    VertexInput input;
     Program(const fs::path&, const fs::path&, GLenum);
     Program(const fs::path&, const fs::path&, const fs::path&, GLenum);
     void activate() const;
@@ -42,6 +43,39 @@ public:
     template <typename T>
     void set(const GLchar*, const T&)
     requires (!gl_uniform_type<T>);
+    template <gl_floating_point T = GLfloat>
+    void set_input()
+    {
+        struct Vertex
+        {
+            T coord[2];
+        };
+        std::vector<Vertex> vertices{
+            {1., 1.},
+            {-1., 1.},
+            {-1., -1.},
+            {1., -1.}
+        };
+        input.loadMemoryModel<Vertex>(&Vertex::coord);
+        input.setVertices(vertices);
+        input.setVertices(std::vector<GLubyte>{0, 1, 2, 2, 3, 0});
+    }
+    template <gl_floating_point P = GLfloat, gl_floating_point T = GLfloat>
+    void set_input(const CubeArray<P, T>& cubes)
+    {
+        input.loadMemoryModel<Cube<P, T>>(
+            &Cube<P, T>::origin,
+            &Cube<P, T>::size,
+            &Cube<P, T>::rotation,
+            &Cube<P, T>::east,
+            &Cube<P, T>::south,
+            &Cube<P, T>::west,
+            &Cube<P, T>::north,
+            &Cube<P, T>::up,
+            &Cube<P, T>::down
+        );
+        input.setVertices(cubes);
+    };
     void draw() const;
     ~Program();
 };
