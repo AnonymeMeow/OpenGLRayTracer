@@ -2,7 +2,7 @@
 
 layout (location = 0) in vec3 origin;
 layout (location = 1) in vec3 size;
-layout (location = 2) in vec3 rotation;
+layout (location = 2) in vec4 rotation;
 layout (location = 3) in vec4 uv_east;
 layout (location = 4) in vec4 uv_south;
 layout (location = 5) in vec4 uv_west;
@@ -35,11 +35,10 @@ mat3 diag(vec3 v)
 
 void main()
 {
-    vec4 q = vec4(rotation, sqrt(1 - dot(rotation, rotation)));
     mat3 rot_cube = 2 * mat3(
-        1 - q.y * q.y - q.z * q.z, q.x * q.y + q.z * q.w, q.x * q.z - q.y * q.w,
-        q.x * q.y - q.z * q.w, 1 - q.x * q.x - q.z * q.z, q.y * q.z + q.x * q.w,
-        q.x * q.z + q.y * q.w, q.y * q.z - q.x * q.w, 1 - q.x * q.x - q.y * q.y
+        1 - rotation.y * rotation.y - rotation.z * rotation.z, rotation.x * rotation.y + rotation.z * rotation.w, rotation.x * rotation.z - rotation.y * rotation.w,
+        rotation.x * rotation.y - rotation.z * rotation.w, 1 - rotation.x * rotation.x - rotation.z * rotation.z, rotation.y * rotation.z + rotation.x * rotation.w,
+        rotation.x * rotation.z + rotation.y * rotation.w, rotation.y * rotation.z - rotation.x * rotation.w, 1 - rotation.x * rotation.x - rotation.y * rotation.y
     ) - diag(vec3(1));
     mat3 rot_camera_x = mat3(
         cos(camera.orientation.x), 0, sin(camera.orientation.x),

@@ -3,6 +3,7 @@
 #include "common.hpp"
 
 #include <cstddef>
+#include <type_traits>
 #include <vector>
 
 class VertexInput
@@ -54,9 +55,9 @@ public:
         unbind();
         unbindEBO();
     }
-    template <typename T, typename... Members>
-        requires (is_gl_type<typename GetArraySize<Members>::Type> && ...)
-    void loadMemoryModel(Members (T::* const... members)) const
+    template <typename T, typename... U, typename... Members>
+        requires (std::is_base_of_v<U, T> && ...) && (is_gl_type<typename GetArraySize<Members>::Type> && ...)
+    void loadMemoryModel(Members (U::* const... members)) const
     {
         bind();
         bindVBO();

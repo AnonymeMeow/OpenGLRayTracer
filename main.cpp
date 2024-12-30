@@ -22,21 +22,7 @@ void push_cubes(std::vector<Cube<>>& cubes, Model::Bone* bone, const PoseTransfo
         PoseTransform poseCube = poseBone * PoseTransform(cube->rotation, cube->pivot);
         Quaternion origin(0, cube->origin[0], cube->origin[1], cube->origin[2]);
         origin = poseCube * origin;
-        if (poseCube.rotation.w < 0)
-        {
-            poseCube.rotation = - poseCube.rotation;
-        }
-        cubes.push_back(Cube<>{
-            (float)(origin.x), (float)(origin.y), (float)(origin.z),
-            (float)(cube->size[0]), (float)(cube->size[1]), (float)(cube->size[2]),
-            (float)(poseCube.rotation.x), (float)(poseCube.rotation.y), (float)(poseCube.rotation.z),
-            (float)(cube->uv.east[0] / texWidth), (float)(cube->uv.east[1] / texHeight), (float)(cube->uv.east[2] / texWidth), (float)(cube->uv.east[3] / texHeight),
-            (float)(cube->uv.south[0] / texWidth), (float)(cube->uv.south[1] / texHeight), (float)(cube->uv.south[2] / texWidth), (float)(cube->uv.south[3] / texHeight),
-            (float)(cube->uv.west[0] / texWidth), (float)(cube->uv.west[1] / texHeight), (float)(cube->uv.west[2] / texWidth), (float)(cube->uv.west[3] / texHeight),
-            (float)(cube->uv.north[0] / texWidth), (float)(cube->uv.north[1] / texHeight), (float)(cube->uv.north[2] / texWidth), (float)(cube->uv.north[3] / texHeight),
-            (float)(cube->uv.up[0] / texWidth), (float)(cube->uv.up[1] / texHeight), (float)(cube->uv.up[2] / texWidth), (float)(cube->uv.up[3] / texHeight),
-            (float)(cube->uv.down[0] / texWidth), (float)(cube->uv.down[1] / texHeight), (float)(cube->uv.down[2] / texWidth), (float)(cube->uv.down[3] / texHeight),
-        });
+        cubes.emplace_back(*cube, origin, poseCube.rotation, texWidth, texHeight);
     }
     for (auto child: bone->children)
     {
@@ -74,7 +60,7 @@ int main()
 
     stbi_image_free(tex);
 
-    std::vector<Cube<>> cubes;
+    CubeArray<> cubes;
 
     const Model& model = scene.objects[0].model;
     PoseTransform id_pose{Quaternion(1, 0, 0, 0), Quaternion(0, 0, 0, 0)};
@@ -85,18 +71,7 @@ int main()
 
     Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
 
-    prog.input.setVertices(cubes);
-    prog.input.loadMemoryModel(
-        &Cube<>::origin,
-        &Cube<>::size,
-        &Cube<>::rotation,
-        &Cube<>::uv_east,
-        &Cube<>::uv_south,
-        &Cube<>::uv_west,
-        &Cube<>::uv_north,
-        &Cube<>::uv_up,
-        &Cube<>::uv_down
-    );
+    cubes.set_input(prog);
 
     prog.set("altas", texture);
 
