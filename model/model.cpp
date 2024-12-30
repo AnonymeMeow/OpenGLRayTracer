@@ -5,8 +5,6 @@
 #include <cmath>
 #include <fstream>
 #include <json/json.h>
-#include <memory>
-#include <optional>
 #include <stb/stb_image.h>
 
 Logger modelLogger("Model");

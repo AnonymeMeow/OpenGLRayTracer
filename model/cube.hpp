@@ -4,6 +4,7 @@
 #include "model.hpp"
 #include "pose.hpp"
 
+#include <cmath>
 #include <concepts>
 
 template <typename T>
@@ -69,7 +70,7 @@ template <
     gl_floating_point PositionDataType = GLfloat,
     gl_floating_point TextureDataType = GLfloat
 >
-    requires (sizeof(PositionDataType) == 32 && sizeof(TextureDataType) == 32)
+    requires (sizeof(PositionDataType) == 4 && sizeof(TextureDataType) == 4)
 struct TextureCube
 {
     int cubes_per_row = 128;
@@ -88,12 +89,12 @@ struct TextureCube
     }
     void buffer_to_texture(const Texture& origin_size_tex, const Texture& rotation_tex, const Texture& uv_tex) const
     {
-        int columns = origin_size.size() / cubes_per_row;
-        origin_size_tex.allocate(2 * cubes_per_row, columns, GL_RGB32F);
-        origin_size_tex.buffer(0, 0, 2 * cubes_per_row, columns, GL_RGB, origin_size.data());
-        rotation_tex.allocate(cubes_per_row, columns, GL_RGBA32F);
-        rotation_tex.buffer(0, 0, cubes_per_row, columns, GL_RGBA, rotation.data());
-        uv_tex.allocate(6 * cubes_per_row, columns, GL_RGBA32F);
-        uv_tex.buffer(0, 0, 6 * cubes_per_row, columns, GL_RGBA, uv.data());
+        int rows = std::ceil((double)origin_size.size() / cubes_per_row);
+        origin_size_tex.allocate(2 * cubes_per_row, rows, GL_RGB32F);
+        origin_size_tex.buffer(0, 0, 2 * cubes_per_row, rows, GL_RGB, (const PositionDataType*)origin_size.data());
+        rotation_tex.allocate(cubes_per_row, rows, GL_RGBA32F);
+        rotation_tex.buffer(0, 0, cubes_per_row, rows, GL_RGBA, (const PositionDataType*)rotation.data());
+        uv_tex.allocate(6 * cubes_per_row, rows, GL_RGBA32F);
+        uv_tex.buffer(0, 0, 6 * cubes_per_row, rows, GL_RGBA, (const TextureDataType*)uv.data());
     }
 };

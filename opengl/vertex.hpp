@@ -2,8 +2,6 @@
 
 #include "common.hpp"
 
-#include <cstddef>
-#include <type_traits>
 #include <vector>
 
 class VertexInput

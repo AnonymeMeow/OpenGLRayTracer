@@ -13,18 +13,11 @@
     },
     "objects": [
         {
-            "position": [0, 39, 0],
-            "rotation": [0, 0, 0],
-            "zoom": 0.3,
-            "model": "../.cache/assets/geckolib/models/entity/winefox.json",
-            "texture": "../.cache/assets/geckolib/textures/entity/winefox.png"
-        },
-        {
             "position": [0, 0, 0],
             "rotation": [0, 0, 0],
             "zoom": 1,
-            "model": "../.cache/assets/geckolib/models/entity/foxmaid.json",
-            "texture": "../.cache/assets/geckolib/textures/entity/foxmaid.png"
+            "model": "../.cache/assets/geckolib/models/entity/winefox.json",
+            "texture": "../.cache/assets/geckolib/textures/entity/winefox.png"
         }
     ]
 }

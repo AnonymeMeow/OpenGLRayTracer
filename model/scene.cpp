@@ -2,7 +2,6 @@
 
 #include "../console/logger.hpp"
 
-#include <cmath>
 #include <fstream>
 #include <json/json.h>
 

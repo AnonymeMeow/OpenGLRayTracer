@@ -3,10 +3,6 @@
 #include "../model/cube.hpp"
 #include "texture.hpp"
 #include "vertex.hpp"
-#include <filesystem>
-#include <map>
-
-namespace fs = std::filesystem;
 
 template <typename... Ts>
 struct _are_all_the_same
@@ -58,7 +54,7 @@ public:
         };
         input.loadMemoryModel<Vertex>(&Vertex::coord);
         input.setVertices(vertices);
-        input.setVertices(std::vector<GLubyte>{0, 1, 2, 2, 3, 0});
+        input.setIndices(std::vector<GLubyte>{0, 1, 2, 2, 3, 0});
     }
     template <gl_floating_point P = GLfloat, gl_floating_point T = GLfloat>
     void set_input(const CubeArray<P, T>& cubes)

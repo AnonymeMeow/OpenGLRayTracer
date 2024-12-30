@@ -2,10 +2,6 @@
 
 #include "../opengl/shader.hpp"
 
-#include <algorithm>
-#include <cmath>
-#include <numbers>
-
 void Camera::move_relative_yaw(float step_x, float step_y, float step_z, float modifier)
 {
     x += (step_x * std::cos(yaw) + step_z * std::sin(yaw)) * modifier;
