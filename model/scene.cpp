@@ -184,7 +184,21 @@ void Scene::gen_altas(const Texture& altas)
             exit(-1);
         }
 
-        altas.buffer(i * max_width, j * max_height, width, height, GL_RGBA, tex);
+        GLenum format;
+        switch (n)
+        {
+        case 4:
+            format = GL_RGBA;
+            break;
+        case 3:
+            format = GL_RGB;
+            break;
+        default:
+            modelLogger.error("Unsupported texture channel size in texture {}.", object.model.tex_info.path.string());
+            exit(-1);
+        }
+
+        altas.buffer(i * max_width, j * max_height, width, height, format, tex);
 
         stbi_image_free(tex);
 
