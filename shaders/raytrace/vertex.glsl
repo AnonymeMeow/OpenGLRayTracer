@@ -2,11 +2,11 @@
 
 layout (location = 0) in vec2 coord;
 
-out Ray
+out Ray_VS
 {
     vec3 origin;
     vec3 direction;
-} ray;
+} initial_ray;
 
 #include ../camera.glsl
 
@@ -23,7 +23,7 @@ void main()
         0, -sin(camera.orientation.y), cos(camera.orientation.y)
     );
     mat3 rot_camera = rot_camera_y * rot_camera_x;
-    ray.origin = camera.position - vec3(0., 0., camera.d) * rot_camera;
-    ray.direction = vec3(coord.x * camera.hfov, coord.y * camera.hfov, 1.) * rot_camera;
+    initial_ray.origin = camera.position - vec3(0., 0., camera.d) * rot_camera;
+    initial_ray.direction = vec3(coord.x * camera.hfov, coord.y * camera.hfov, 1.) * rot_camera;
     gl_Position = vec4(-coord.x, coord.y, 0., 1.);
 }

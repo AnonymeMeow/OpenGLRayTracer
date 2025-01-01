@@ -16,8 +16,15 @@
             "position": [0, 0, 0],
             "rotation": [0, 0, 0],
             "zoom": 1,
-            "model": "../.cache/assets/geckolib/models/entity/winefox.json",
+            "model": "../.cache/winefox.json",
             "texture": "../.cache/assets/geckolib/textures/entity/winefox.png"
+        },
+        {
+            "position": [0, 0, 0],
+            "rotation": [0, 90, 0],
+            "zoom": 1,
+            "model": "../assets/box.geo.json",
+            "texture": "../assets/box_texture.png"
         }
     ]
 }
