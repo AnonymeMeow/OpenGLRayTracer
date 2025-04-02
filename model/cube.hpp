@@ -48,12 +48,12 @@ struct Cube: _cube_origin_size<PositionDataType>, _cube_rotation<PositionDataTyp
 {
     Cube(const Model::Cube& cube, const PoseTransform& cube_pose, const PoseTransform& model_pose, double zoom, const Model& model, int tex_width, int tex_height):
         _cube_uv<TextureDataType>{
-            (TextureDataType)((cube.uv.east[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.east[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.east[2] / tex_width), (TextureDataType)(cube.uv.east[3] / tex_height),
-            (TextureDataType)((cube.uv.south[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.south[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.south[2] / tex_width), (TextureDataType)(cube.uv.south[3] / tex_height),
-            (TextureDataType)((cube.uv.west[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.west[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.west[2] / tex_width), (TextureDataType)(cube.uv.west[3] / tex_height),
-            (TextureDataType)((cube.uv.north[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.north[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.north[2] / tex_width), (TextureDataType)(cube.uv.north[3] / tex_height),
-            (TextureDataType)((cube.uv.up[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.up[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.up[2] / tex_width), (TextureDataType)(cube.uv.up[3] / tex_height),
-            (TextureDataType)((cube.uv.down[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.down[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.down[2] / tex_width), (TextureDataType)(cube.uv.down[3] / tex_height)
+            {(TextureDataType)((cube.uv.east[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.east[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.east[2] / tex_width), (TextureDataType)(cube.uv.east[3] / tex_height)},
+            {(TextureDataType)((cube.uv.south[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.south[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.south[2] / tex_width), (TextureDataType)(cube.uv.south[3] / tex_height)},
+            {(TextureDataType)((cube.uv.west[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.west[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.west[2] / tex_width), (TextureDataType)(cube.uv.west[3] / tex_height)},
+            {(TextureDataType)((cube.uv.north[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.north[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.north[2] / tex_width), (TextureDataType)(cube.uv.north[3] / tex_height)},
+            {(TextureDataType)((cube.uv.up[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.up[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.up[2] / tex_width), (TextureDataType)(cube.uv.up[3] / tex_height)},
+            {(TextureDataType)((cube.uv.down[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.down[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.down[2] / tex_width), (TextureDataType)(cube.uv.down[3] / tex_height)}
         },
         _cube_material<TextureDataType>{(TextureDataType)model.glow, (TextureDataType)model.metallic}
     {
@@ -61,8 +61,8 @@ struct Cube: _cube_origin_size<PositionDataType>, _cube_rotation<PositionDataTyp
         origin = model_pose * (cube_pose * origin * zoom);
         Quaternion rotation = (model_pose * cube_pose).rotation;
         new(static_cast<_cube_origin_size<PositionDataType>*>(this)) _cube_origin_size<PositionDataType>{
-            (PositionDataType)origin.x, (PositionDataType)origin.y, (PositionDataType)origin.z,
-            (PositionDataType)(cube.size[0] * zoom), (PositionDataType)(cube.size[1] * zoom), (PositionDataType)(cube.size[2] * zoom)
+            {(PositionDataType)origin.x, (PositionDataType)origin.y, (PositionDataType)origin.z},
+            {(PositionDataType)(cube.size[0] * zoom), (PositionDataType)(cube.size[1] * zoom), (PositionDataType)(cube.size[2] * zoom)}
         };
         new(static_cast<_cube_rotation<PositionDataType>*>(this)) _cube_rotation<PositionDataType>{
             (PositionDataType)rotation.x, (PositionDataType)rotation.y, (PositionDataType)rotation.z, (PositionDataType)rotation.w

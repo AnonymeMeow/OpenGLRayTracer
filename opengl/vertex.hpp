@@ -69,7 +69,9 @@ public:
                     gl_type_enum_v<typename GetArraySize<Members>::Type>,
                     GL_FALSE,
                     sizeof(T),
-                    static_cast<const void*>(&(((T*)nullptr)->*members))
+                    static_cast<const void*>(
+                        &((static_cast<T*>(nullptr))->*static_cast<Members T::*>(members))
+                    )
                 ),
                 glEnableVertexAttribArray(index++)
             ), ...
