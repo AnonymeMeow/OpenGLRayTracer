@@ -11,6 +11,7 @@ struct Cube
     sampler2D origin_size;
     sampler2D rotation;
     sampler2D uv;
+    sampler2D material;
 };
 
 uniform Cube cube;
@@ -50,6 +51,8 @@ void check_hit(inout Ray ray, out bool is_hit)
     float k_min = INF_F;
     vec4 color;
     vec3 normal;
+    float glow;
+    float metallic;
     for (int index = 0; index < count; index++)
     {
         int i = index % 128, j = index / 128;
@@ -62,6 +65,8 @@ void check_hit(inout Ray ray, out bool is_hit)
         vec4 cube_uv_north = texelFetch(cube.uv, ivec2(i * 6 + 3, j), 0);
         vec4 cube_uv_up = texelFetch(cube.uv, ivec2(i * 6 + 4, j), 0);
         vec4 cube_uv_down = texelFetch(cube.uv, ivec2(i * 6 + 5, j), 0);
+        float cube_glow = texelFetch(cube.material, ivec2(i, j), 0).r;
+        float cube_metallic = texelFetch(cube.material, ivec2(i, j), 0).g;
 
         vec4 q = cube_rotation;
         mat3 rot_cube = 2 * mat3(
@@ -86,6 +91,8 @@ void check_hit(inout Ray ray, out bool is_hit)
                 color = texture(altas, cube_uv_north.xy + tex_coord * cube_uv_north.zw);
                 k_min = k.z;
                 normal = vec3(0., 0., -1.) * rot_cube;
+                glow = cube_glow;
+                metallic = cube_metallic;
             }
         }
         if (k1.z > EPSILON && k1.z < k_min)
@@ -98,6 +105,8 @@ void check_hit(inout Ray ray, out bool is_hit)
                 color = texture(altas, cube_uv_south.xy + tex_coord * cube_uv_south.zw);
                 k_min = k1.z;
                 normal = vec3(0., 0., 1.) * rot_cube;
+                glow = cube_glow;
+                metallic = cube_metallic;
             }
         }
         if (k.y > EPSILON && k.y < k_min)
@@ -110,6 +119,8 @@ void check_hit(inout Ray ray, out bool is_hit)
                 color = texture(altas, cube_uv_down.xy + tex_coord * cube_uv_down.zw);
                 k_min = k.y;
                 normal = vec3(0., -1., 0.) * rot_cube;
+                glow = cube_glow;
+                metallic = cube_metallic;
             }
         }
         if (k1.y > EPSILON && k1.y < k_min)
@@ -122,6 +133,8 @@ void check_hit(inout Ray ray, out bool is_hit)
                 color = texture(altas, cube_uv_up.xy + tex_coord * cube_uv_up.zw);
                 k_min = k1.y;
                 normal = vec3(0., 1., 0.) * rot_cube;
+                glow = cube_glow;
+                metallic = cube_metallic;
             }
         }
         if (k.x > EPSILON && k.x < k_min)
@@ -134,6 +147,8 @@ void check_hit(inout Ray ray, out bool is_hit)
                 color = texture(altas, cube_uv_west.xy + tex_coord * cube_uv_west.zw);
                 k_min = k.x;
                 normal = vec3(-1., 0., 0.) * rot_cube;
+                glow = cube_glow;
+                metallic = cube_metallic;
             }
         }
         if (k1.x > EPSILON && k1.x < k_min)
@@ -146,35 +161,51 @@ void check_hit(inout Ray ray, out bool is_hit)
                 color = texture(altas, cube_uv_east.xy + tex_coord * cube_uv_east.zw);
                 k_min = k1.x;
                 normal = vec3(1., 0., 0.) * rot_cube;
+                glow = cube_glow;
+                metallic = cube_metallic;
             }
         }
     }
     if (k_min == INF_F)
     {
         is_hit = false;
-        float cos_angle = dot(normalize(ray.direction), vec3(-0.6, 0.8, 0.));
-        float light = cos_angle; // * cos_angle * cos_angle * 2. - 1.;
-        if (light < 0) light = 0;
-        ray.color *= vec4(light, light, light, 1.);
-        // ray.color *= vec4(1., 1., 1., 1.);
+        // float cos_angle = dot(normalize(ray.direction), vec3(-0.6, 0.8, 0.));
+        // float light = cos_angle * 20. - 10.; // * cos_angle * cos_angle * 2. - 1.;
+        // if (light < 0) light = 0;
+        // ray.color *= vec4(light, light, light, 1.);
+        ray.color *= vec4(0., 0., 0., 1.);
     }
     else
     {
-        is_hit = true;
         if (color.a == 0)
         {
+            is_hit = true;
             ray.origin = ray.origin + k_min * ray.direction;
             return;
         }
-        ray.color *= color;
+        if (random() < glow)
+        {
+            is_hit = false;
+            if (glow > 1) color *= glow;
+            ray.color *= color;
+            return;
+        }
+        is_hit = true;
         ray.origin = ray.origin + k_min * ray.direction;
-        // ray.direction = ray.direction - 2. * dot(normal, ray.direction) * normal;
+        if (random() < metallic)
+        {
+            ray.direction = ray.direction - 2. * dot(normal, ray.direction) * normal;
+            if (metallic > 1) color = mix(color, vec4(1.), 1 / metallic);
+            ray.color *= color;
+            return;
+        }
+        ray.color *= color;
         float direction_normal = random();
         vec3 x = vec3(normal.z, 0., -normal.x);
         vec3 y = vec3(0., normal.z, -normal.y);
         vec3 tan1 = normalize(length(x) > length(y)? x: y);
         vec3 tan2 = cross(normal, tan1);
-        float angle = random() * 3.14159265358979;
+        float angle = random() * 3.14159265358979 * 2;
         if (dot(normal, ray.direction) > 0) direction_normal = - direction_normal;
         ray.direction = direction_normal * normal + cos(angle) * tan1 + sin(angle) * tan2;
     }
@@ -185,6 +216,7 @@ void check_hit(inout Ray ray, out bool is_hit)
 void main()
 {
     seed = dot(initial_ray.direction, vec3(1.14, 5.14, 19.19));
+    seed = random();
     Ray ray;
     vec4 final_color = vec4(0.);
     for (int j = 0; j < SAMPLE_COUNT; j++)
@@ -198,6 +230,12 @@ void main()
         for (int i = 0; i < 5 && is_hit; i++)
         {
             check_hit(ray, is_hit);
+            float prob = max(max(ray.color.r, ray.color.g), ray.color.b);
+            if (random() > prob)
+            {
+                break;
+            }
+            ray.color /= prob;
         }
         if (is_hit)
         {

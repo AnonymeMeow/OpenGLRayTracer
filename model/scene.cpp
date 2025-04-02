@@ -123,8 +123,9 @@ Scene::Scene(const fs::path& scene_path)
             exit(-1);
         }
         const Json::Value& texture_json = object_json["texture"];
-        objects.emplace_back(position_json, rotation_json, zoom_json, model_json.asString(), texture_json.asString()
-        );
+        const Json::Value& glow_json = aquire_double(object_json, "glow", scene_path);
+        const Json::Value& metallic_json = aquire_double(object_json, "metallic", scene_path);
+        objects.emplace_back(position_json, rotation_json, zoom_json, model_json.asString(), texture_json.asString(), glow_json, metallic_json);
     }
 }
 
@@ -133,7 +134,9 @@ Scene::Object::Object(
     const Json::Value& rotation_json,
     const Json::Value& zoom_json,
     const fs::path& model,
-    const fs::path& texture
+    const fs::path& texture,
+    const Json::Value& glow_json,
+    const Json::Value& metallic_json
 ):
     model(model, texture)
 {
@@ -144,6 +147,8 @@ Scene::Object::Object(
     rotation[1] = rotation_json[1].asDouble();
     rotation[2] = rotation_json[2].asDouble();
     zoom = zoom_json.asDouble();
+    this->model.glow = glow_json.asDouble();
+    this->model.metallic = metallic_json.asDouble();
 }
 
 void Scene::gen_altas(const Texture& altas)

@@ -34,21 +34,28 @@ struct _cube_uv
     T down[4];
 };
 
+template <gl_floating_point T>
+struct _cube_material
+{
+    T material[2];
+};
+
 template <
     gl_floating_point PositionDataType = GLfloat,
     gl_floating_point TextureDataType = GLfloat
 >
-struct Cube: _cube_origin_size<PositionDataType>, _cube_rotation<PositionDataType>, _cube_uv<TextureDataType>
+struct Cube: _cube_origin_size<PositionDataType>, _cube_rotation<PositionDataType>, _cube_uv<TextureDataType>, _cube_material<TextureDataType>
 {
-    Cube(const Model::Cube& cube, const PoseTransform& cube_pose, const PoseTransform& model_pose, double zoom, const Model::TexInfo& tex_info, int tex_width, int tex_height):
+    Cube(const Model::Cube& cube, const PoseTransform& cube_pose, const PoseTransform& model_pose, double zoom, const Model& model, int tex_width, int tex_height):
         _cube_uv<TextureDataType>{
-            (TextureDataType)((cube.uv.east[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.east[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.east[2] / tex_width), (TextureDataType)(cube.uv.east[3] / tex_height),
-            (TextureDataType)((cube.uv.south[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.south[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.south[2] / tex_width), (TextureDataType)(cube.uv.south[3] / tex_height),
-            (TextureDataType)((cube.uv.west[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.west[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.west[2] / tex_width), (TextureDataType)(cube.uv.west[3] / tex_height),
-            (TextureDataType)((cube.uv.north[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.north[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.north[2] / tex_width), (TextureDataType)(cube.uv.north[3] / tex_height),
-            (TextureDataType)((cube.uv.up[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.up[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.up[2] / tex_width), (TextureDataType)(cube.uv.up[3] / tex_height),
-            (TextureDataType)((cube.uv.down[0] + tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.down[1] + tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.down[2] / tex_width), (TextureDataType)(cube.uv.down[3] / tex_height)
-        }
+            (TextureDataType)((cube.uv.east[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.east[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.east[2] / tex_width), (TextureDataType)(cube.uv.east[3] / tex_height),
+            (TextureDataType)((cube.uv.south[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.south[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.south[2] / tex_width), (TextureDataType)(cube.uv.south[3] / tex_height),
+            (TextureDataType)((cube.uv.west[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.west[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.west[2] / tex_width), (TextureDataType)(cube.uv.west[3] / tex_height),
+            (TextureDataType)((cube.uv.north[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.north[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.north[2] / tex_width), (TextureDataType)(cube.uv.north[3] / tex_height),
+            (TextureDataType)((cube.uv.up[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.up[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.up[2] / tex_width), (TextureDataType)(cube.uv.up[3] / tex_height),
+            (TextureDataType)((cube.uv.down[0] + model.tex_info.location[0]) / tex_width), (TextureDataType)((cube.uv.down[1] + model.tex_info.location[1]) / tex_height), (TextureDataType)(cube.uv.down[2] / tex_width), (TextureDataType)(cube.uv.down[3] / tex_height)
+        },
+        _cube_material<TextureDataType>{(TextureDataType)model.glow, (TextureDataType)model.metallic}
     {
         Quaternion origin(0, cube.origin[0], cube.origin[1], cube.origin[2]);
         origin = model_pose * (cube_pose * origin * zoom);
@@ -77,6 +84,7 @@ struct TextureCube
     std::vector<_cube_origin_size<PositionDataType>> origin_size;
     std::vector<_cube_rotation<PositionDataType>> rotation;
     std::vector<_cube_uv<TextureDataType>> uv;
+    std::vector<_cube_material<TextureDataType>> material;
 
     TextureCube(const CubeArray<PositionDataType, TextureDataType>& cube_array)
     {
@@ -85,9 +93,10 @@ struct TextureCube
             origin_size.push_back(static_cast<_cube_origin_size<PositionDataType>>(cube));
             rotation.push_back(static_cast<_cube_rotation<PositionDataType>>(cube));
             uv.push_back(static_cast<_cube_uv<TextureDataType>>(cube));
+            material.push_back(static_cast<_cube_material<TextureDataType>>(cube));
         }
     }
-    void buffer_to_texture(const Texture& origin_size_tex, const Texture& rotation_tex, const Texture& uv_tex) const
+    void buffer_to_texture(const Texture& origin_size_tex, const Texture& rotation_tex, const Texture& uv_tex, const Texture& material_tex) const
     {
         int rows = std::ceil((double)origin_size.size() / cubes_per_row);
         origin_size_tex.allocate(2 * cubes_per_row, rows, GL_RGB32F);
@@ -96,5 +105,7 @@ struct TextureCube
         rotation_tex.buffer(0, 0, cubes_per_row, rows, GL_RGBA, (const PositionDataType*)rotation.data());
         uv_tex.allocate(6 * cubes_per_row, rows, GL_RGBA32F);
         uv_tex.buffer(0, 0, 6 * cubes_per_row, rows, GL_RGBA, (const TextureDataType*)uv.data());
+        material_tex.allocate(cubes_per_row, rows, GL_RG32F);
+        material_tex.buffer(0, 0, cubes_per_row, rows, GL_RG, (const TextureDataType*)material.data());
     }
 };

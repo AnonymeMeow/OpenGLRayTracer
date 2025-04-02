@@ -14,7 +14,7 @@ public:
         double rotation[3];
         double zoom;
         Model model;
-        Object(const Json::Value&, const Json::Value&, const Json::Value&, const fs::path&, const fs::path&);
+        Object(const Json::Value&, const Json::Value&, const Json::Value&, const fs::path&, const fs::path&, const Json::Value&, const Json::Value&);
     };
 
     int altas_max_width = 1024;
@@ -40,17 +40,17 @@ public:
     void gen_altas(const Texture&);
 
     template <gl_floating_point P, gl_floating_point T>
-    void push_cubes(CubeArray<P, T>& cubes, const std::unique_ptr<Model::Bone>& bone, const PoseTransform& model_pose, const PoseTransform& bone_pose, double zoom, const Model::TexInfo& tex_info) const
+    void push_cubes(CubeArray<P, T>& cubes, const std::unique_ptr<Model::Bone>& bone, const PoseTransform& model_pose, const PoseTransform& bone_pose, double zoom, const Model& model) const
     {
         PoseTransform poseBone = bone_pose * PoseTransform(bone->rotation, bone->pivot);
         for (const auto& cube: bone->cubes)
         {
             PoseTransform poseCube = poseBone * PoseTransform(cube->rotation, cube->pivot);
-            cubes.emplace_back(*cube, poseCube, model_pose, zoom, tex_info, altas_width, altas_height);
+            cubes.emplace_back(*cube, poseCube, model_pose, zoom, model, altas_width, altas_height);
         }
         for (const auto& child: bone->children)
         {
-            push_cubes(cubes, child, model_pose, poseBone, zoom, tex_info);
+            push_cubes(cubes, child, model_pose, poseBone, zoom, model);
         }
     }
     template <gl_floating_point P = GLfloat, gl_floating_point T = GLfloat>
@@ -64,7 +64,7 @@ public:
             pose.translation = Quaternion(0, object.position[0], object.position[1], object.position[2]);
             for (const auto& bone: object.model.bones)
             {
-                push_cubes<P, T>(cubes, bone, pose, id_pose, object.zoom, object.model.tex_info);
+                push_cubes<P, T>(cubes, bone, pose, id_pose, object.zoom, object.model);
             }
         }
         return cubes;

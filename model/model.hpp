@@ -43,6 +43,8 @@ public:
         int location[2];
         int size[2];
     } tex_info;
+    double glow = 0.;
+    double metallic = 0.;
 
     Model(const fs::path&, const fs::path&);
 };

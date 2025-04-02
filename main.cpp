@@ -33,14 +33,15 @@ int main()
 
     prog.set_input<>();
 
-    Texture ori_size{}, rotation{}, uv{};
+    Texture ori_size{}, rotation{}, uv{}, material{};
 
     TextureCube<> tex_cube(cubes);
-    tex_cube.buffer_to_texture(ori_size, rotation, uv);
+    tex_cube.buffer_to_texture(ori_size, rotation, uv, material);
 
     prog.set("cube.origin_size", ori_size);
     prog.set("cube.rotation", rotation);
     prog.set("cube.uv", uv);
+    prog.set("cube.material", material);
 
     prog.set("altas", altas);
     prog.set("count", (int)cubes.size());
@@ -129,6 +130,12 @@ int main()
 
         prog.set("camera", window.camera);
         prog.draw();
+
+        // unsigned char* img = new unsigned char[WindowWidth * WindowHeight * 3];
+        // glReadPixels(0, 0, WindowWidth, WindowHeight, GL_RGB, GL_UNSIGNED_BYTE, img);
+        // stbi_write_png("../.cache/screenshot.png", WindowWidth, WindowHeight, 3, img, 0);
+        // delete[] img;
+        // return 0;
 
         window.swap();
     }

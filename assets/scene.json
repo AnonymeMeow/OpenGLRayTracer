@@ -16,15 +16,19 @@
             "position": [0, 0, 0],
             "rotation": [0, 0, 0],
             "zoom": 1,
-            "model": "../.cache/winefox.json",
-            "texture": "../.cache/assets/geckolib/textures/entity/winefox.png"
+            "model": "../assets/winefox.json",
+            "texture": "../assets/winefox.png",
+            "glow": 0.5,
+            "metallic": 0
         },
         {
             "position": [0, 0, 0],
-            "rotation": [0, 90, 0],
+            "rotation": [0, 0, 0],
             "zoom": 1,
             "model": "../assets/box.geo.json",
-            "texture": "../assets/box_texture.png"
+            "texture": "../assets/box_texture.png",
+            "glow": 0.5,
+            "metallic": 0
         }
     ]
 }
