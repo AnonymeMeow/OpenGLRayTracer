@@ -1,4 +1,4 @@
 target_sources(RayTracer
-  PUBLIC
+  PRIVATE
   logger.cpp
 )

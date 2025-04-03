@@ -1,5 +1,5 @@
 target_sources(RayTracer
-  PUBLIC
+  PRIVATE
   shader.cpp
   texture.cpp
   vertex.cpp

@@ -2,9 +2,6 @@
 #include "opengl/shader.hpp"
 #include "view/sdl.hpp"
 
-const int WindowWidth = 1000;
-const int WindowHeight = 1000;
-
 int main()
 {
     Logger logger{"Main"};

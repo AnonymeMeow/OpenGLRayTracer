@@ -1,5 +1,5 @@
 target_sources(RayTracer
-  PUBLIC
+  PRIVATE
   model.cpp
   pose.cpp
   scene.cpp

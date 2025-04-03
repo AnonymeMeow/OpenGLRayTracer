@@ -1,5 +1,5 @@
 target_sources(RayTracer
-  PUBLIC
+  PRIVATE
   camera.cpp
   sdl.cpp
 )
