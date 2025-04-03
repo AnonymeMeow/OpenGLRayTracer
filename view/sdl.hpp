@@ -2,6 +2,7 @@
 
 #include "camera.hpp"
 #include "../console/logger.hpp"
+#include "../opengl/shader.hpp"
 
 #include <SDL2/SDL.h>
 
@@ -16,5 +17,6 @@ public:
     Camera camera;
     SDL_Context(int, int, const std::string&, Camera&&);
     void swap() const;
+    void render_loop(Program&);
     ~SDL_Context();
 };
