@@ -1,21 +1,19 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.28)
 project(OpenGLRayTracer)
 
 set(CMAKE_CXX_STANDARD 23)
 
-aux_source_directory(. src)
+add_executable(RayTracer)
 
-function(append_src_list dir)
-    aux_source_directory(${dir} dir_src)
-    set(src ${src} ${dir_src} PARENT_SCOPE)
-endfunction()
+add_subdirectory(console)
+add_subdirectory(model)
+add_subdirectory(opengl)
+add_subdirectory(view)
 
-append_src_list(console)
-append_src_list(model)
-append_src_list(opengl)
-append_src_list(view)
-
-add_executable(RayTracer ${src})
+target_sources(RayTracer
+  PUBLIC
+  main.cpp
+)
 
 find_package(SDL2 REQUIRED)
 target_link_libraries(RayTracer PRIVATE SDL2::SDL2)

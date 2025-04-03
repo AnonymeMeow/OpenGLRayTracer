@@ -70,7 +70,7 @@ public:
                     GL_FALSE,
                     sizeof(T),
                     static_cast<const void*>(
-                        &((static_cast<T*>(nullptr))->*static_cast<Members T::*>(members))
+                        &(static_cast<T*>(nullptr)->*static_cast<Members T::*>(members))
                     )
                 ),
                 glEnableVertexAttribArray(index++)

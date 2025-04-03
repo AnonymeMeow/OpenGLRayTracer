@@ -25,26 +25,26 @@ int main()
 
     auto cubes = scene.build_cube_array<>();
 
-    // Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
+    Program prog("../shaders/vertex.glsl", "../shaders/geometry.glsl", "../shaders/fragment.glsl", GL_POINTS);
 
-    // prog.set_input(cubes);
+    prog.set_input(cubes);
 
-    Program prog("../shaders/raytrace/vertex.glsl", "../shaders/raytrace/fragment.glsl", GL_TRIANGLES);
+    // Program prog("../shaders/raytrace/vertex.glsl", "../shaders/raytrace/fragment.glsl", GL_TRIANGLES);
 
-    prog.set_input<>();
+    // prog.set_input<>();
 
-    Texture ori_size{}, rotation{}, uv{}, material{};
+    // Texture ori_size{}, rotation{}, uv{}, material{};
 
-    TextureCube<> tex_cube(cubes);
-    tex_cube.buffer_to_texture(ori_size, rotation, uv, material);
+    // TextureCube<> tex_cube(cubes);
+    // tex_cube.buffer_to_texture(ori_size, rotation, uv, material);
 
-    prog.set("cube.origin_size", ori_size);
-    prog.set("cube.rotation", rotation);
-    prog.set("cube.uv", uv);
-    prog.set("cube.material", material);
+    // prog.set("cube.origin_size", ori_size);
+    // prog.set("cube.rotation", rotation);
+    // prog.set("cube.uv", uv);
+    // prog.set("cube.material", material);
 
     prog.set("altas", altas);
-    prog.set("count", (int)cubes.size());
+    // prog.set("count", (int)cubes.size());
 
     bool running = true;
     const Uint8* key_states = SDL_GetKeyboardState(nullptr);
