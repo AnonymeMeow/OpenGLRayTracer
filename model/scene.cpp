@@ -138,14 +138,18 @@ Scene::Object::Object(
     const Json::Value& glow_json,
     const Json::Value& metallic_json
 ):
-    model(model, texture)
+    model(model, texture),
+    rotation(1, 0, 0, 0)
 {
     position[0] = position_json[0].asDouble();
     position[1] = position_json[1].asDouble();
     position[2] = position_json[2].asDouble();
-    rotation[0] = rotation_json[0].asDouble();
-    rotation[1] = rotation_json[1].asDouble();
-    rotation[2] = rotation_json[2].asDouble();
+    double euler[] = {
+        rotation_json[0].asDouble(),
+        rotation_json[1].asDouble(),
+        rotation_json[2].asDouble()
+    };
+    rotation = PoseTransform(euler).rotation;
     zoom = zoom_json.asDouble();
     this->model.glow = glow_json.asDouble();
     this->model.metallic = metallic_json.asDouble();

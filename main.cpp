@@ -2,8 +2,6 @@
 #include "opengl/shader.hpp"
 #include "view/sdl.hpp"
 
-#include <SDL2/SDL.h>
-
 const int WindowWidth = 1000;
 const int WindowHeight = 1000;
 
@@ -42,7 +40,7 @@ int main()
     prog.set("altas", altas);
     // prog.set("count", (int)cubes.size());
 
-    window.render_loop(prog);
+    window.render_loop(prog, nullptr);
 
     return 0;
 }

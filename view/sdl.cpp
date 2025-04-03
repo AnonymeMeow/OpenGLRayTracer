@@ -48,7 +48,7 @@ void SDL_Context::swap() const
     SDL_GL_SwapWindow(window);
 }
 
-void SDL_Context::render_loop(Program& prog)
+void SDL_Context::render_loop(Program& prog, void (*call_back)())
 {
     bool running = true;
     const Uint8* key_states = SDL_GetKeyboardState(nullptr);
@@ -140,6 +140,11 @@ void SDL_Context::render_loop(Program& prog)
         // stbi_write_png("../.cache/screenshot.png", window_width, window_height, 3, img, 0);
         // delete[] img;
         // return;
+
+        if (call_back)
+        {
+            call_back();
+        }
 
         swap();
     }

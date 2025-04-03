@@ -17,6 +17,6 @@ public:
     Camera camera;
     SDL_Context(int, int, const std::string&, Camera&&);
     void swap() const;
-    void render_loop(Program&);
+    void render_loop(Program&, void (*)());
     ~SDL_Context();
 };

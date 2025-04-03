@@ -11,7 +11,7 @@ public:
     struct Object
     {
         double position[3];
-        double rotation[3];
+        Quaternion rotation;
         double zoom;
         Model model;
         Object(const Json::Value&, const Json::Value&, const Json::Value&, const fs::path&, const fs::path&, const Json::Value&, const Json::Value&);
@@ -60,8 +60,10 @@ public:
         PoseTransform id_pose(Quaternion(1, 0, 0, 0), Quaternion(0, 0, 0, 0));
         for (const auto& object: objects)
         {
-            PoseTransform pose(object.rotation);
-            pose.translation = Quaternion(0, object.position[0], object.position[1], object.position[2]);
+            PoseTransform pose(
+                object.rotation,
+                Quaternion(0, object.position[0], object.position[1], object.position[2])
+            );
             for (const auto& bone: object.model.bones)
             {
                 push_cubes<P, T>(cubes, bone, pose, id_pose, object.zoom, object.model);
